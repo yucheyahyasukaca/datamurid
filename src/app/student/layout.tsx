@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { supabase } from '@/utils/supabase'
 
 export default function StudentLayout({
     children,
@@ -12,10 +13,31 @@ export default function StudentLayout({
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const pathname = usePathname()
 
+    const [studentName, setStudentName] = useState('Siswa User')
+
     // Close sidebar when route changes (mobile experience)
     React.useEffect(() => {
         setSidebarOpen(false)
     }, [pathname])
+
+    // Fetch Student Name
+    React.useEffect(() => {
+        async function fetchStudentName() {
+            const nisn = localStorage.getItem('student_nisn')
+            if (!nisn) return
+
+            const { data, error } = await supabase
+                .from('students')
+                .select('nama')
+                .eq('nisn', nisn)
+                .single()
+
+            if (data && data.nama) {
+                setStudentName(data.nama)
+            }
+        }
+        fetchStudentName()
+    }, [])
 
     return (
         <div className="min-h-screen flex text-slate-300 relative overflow-x-hidden">
@@ -98,10 +120,10 @@ export default function StudentLayout({
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-white ring-2 ring-white/10">
-                            S
+                        <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-white ring-2 ring-white/10 uppercase">
+                            {studentName.charAt(0)}
                         </div>
-                        <span className="text-sm text-slate-400 hidden sm:block">Siswa User</span>
+                        <span className="text-sm text-slate-400 hidden sm:block">{studentName}</span>
                     </div>
                 </header>
 
