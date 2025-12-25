@@ -1,12 +1,9 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
 
-const inter = Inter({ subsets: ['latin'] })
-
 export const metadata: Metadata = {
-  title: 'Data Murid',
-  description: 'Aplikasi Pencatatan dan Validasi Data Murid',
+  title: 'Data Murid - SMA Negeri 1 Pati',
+  description: 'Portal Resmi Data Murid SMA Negeri 1 Pati',
 }
 
 export default function RootLayout({
@@ -19,7 +16,7 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
       </head>
-      <body className={inter.className}>
+      <body>
         {children}
       </body>
     </html>
