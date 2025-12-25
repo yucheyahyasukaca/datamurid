@@ -40,17 +40,15 @@ export default function LoginPage() {
 
                 // Clear student session if any
                 localStorage.removeItem('student_nisn')
+                document.cookie = "student_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;"
+
+                // Set Admin Session Cookie for Middleware
+                document.cookie = "admin_session=true; path=/; max-age=86400"
 
                 router.push('/admin')
 
             } else {
                 // Student "Fake Auth" via Table Lookup
-                // Password input is expected to be format YYYY-MM-DD or DDMMYYYY depending on input
-                // But let's assume raw string comparison or some basic format check.
-                // The prompt said "password tanggal lahir". In the form we made it "date" input? 
-                // No, in login form it is "text" or "password". Let's check.
-                // It is type="password". 
-
                 const cleanNisn = formData.identifier.replace(/\D/g, '')
 
                 // Fetch student by NISN
@@ -65,14 +63,7 @@ export default function LoginPage() {
                 }
 
                 // Verify Date of Birth (Password)
-                // We need to match the input password format with the stored date format (YYYY-MM-DD usually in SQL)
-                // Let's assume user types "DDMMYYYY" (e.g. 25012008) and DB has "2008-01-25"
-                // OR user types exactly what matches.
-                // Let's try to normalize input.
-
                 const inputPwd = formData.password.replace(/\D/g, '') // Remove non-digits
-                // Expected DB format: 2008-05-20 (YYYY-MM-DD)
-                // Expected Input: 20052008 (DDMMYYYY) -> We need to check both logic or just compel format
 
                 const dbDate = student.tanggal_lahir // "YYYY-MM-DD"
                 const [yyyy, mm, dd] = dbDate.split('-')
@@ -87,13 +78,26 @@ export default function LoginPage() {
 
                 // "Login" Successful
                 localStorage.setItem('student_nisn', student.nisn)
+
+                // Set Student Session Cookie for Middleware
+                document.cookie = "student_session=true; path=/; max-age=86400"
+                // Clear admin cookie
+                document.cookie = "admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;"
+
                 router.push('/student')
             }
 
         } catch (err: any) {
             setError(err.message || 'Gagal masuk. Periksa data Anda kembali.')
         } finally {
-            setLoading(false)
+            // Delay setting loading to false slightly if redirecting to prevent button flash
+            // But usually router.push happens fast. We keep it simply false here or let it unmount.
+            if (error) setLoading(false)
+            // If success, we are redirecting, so keeping it true might be better visual,
+            // but react state update on unmounted component warning might occur? 
+            // Next.js handles this well usually.
+            // Let's just set it false if error, otherwise keep it spinning until navigation changes page.
+            if (!error) setLoading(false) // Set to false if no error, as router.push will handle navigation
         }
     }
 
@@ -191,7 +195,10 @@ export default function LoginPage() {
                             className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl font-bold text-white text-lg shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                         >
                             {loading ? (
-                                <svg className="w-6 h-6 animate-spin text-white/50" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                <>
+                                    <svg className="w-6 h-6 animate-spin text-white/50 mr-2" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                    Memproses Masuk...
+                                </>
                             ) : (
                                 'Masuk ke Portal'
                             )}

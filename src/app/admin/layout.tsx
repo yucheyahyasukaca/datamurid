@@ -64,9 +64,17 @@ export default function AdminLayout({
                         Data Nilai
                     </Link>
                     <div className="pt-4 mt-4 border-t border-white/5">
-                        <Link href="/" className="block px-4 py-3 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all">
+                        <button
+                            onClick={() => {
+                                document.cookie = "admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;"
+                                document.cookie = "student_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;"
+                                localStorage.removeItem('student_nisn')
+                                window.location.href = '/login'
+                            }}
+                            className="w-full text-left block px-4 py-3 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all"
+                        >
                             Log Out
-                        </Link>
+                        </button>
                     </div>
                 </nav>
             </aside>

@@ -68,6 +68,8 @@ export default function StudentLayout({
                             <button
                                 onClick={() => {
                                     localStorage.removeItem('student_nisn')
+                                    document.cookie = "student_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;"
+                                    document.cookie = "admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;"
                                     window.location.href = '/login'
                                 }}
                                 className="w-full text-left block px-4 py-3 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all"
