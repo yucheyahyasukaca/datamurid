@@ -111,56 +111,47 @@ export default function NewStudentPage() {
             const colMap: { [index: number]: string } = {}
 
             headerRow.forEach((cell: any, index: number) => {
-                const mainHeader = String(cell || '').trim().toLowerCase()
-                const subHeader = String(subHeaderRow[index] || '').trim().toLowerCase()
+                const h1 = String(cell || '').trim().toLowerCase()
+                const h2 = String(subHeaderRow[index] || '').trim().toLowerCase()
+                const combined = `${h1} ${h2}`
 
-                // Composite check matching the User's Image structure
-                if (mainHeader === 'nama' || mainHeader === 'nama peserta didik') colMap[index] = 'nama'
-                else if (mainHeader === 'nisn') colMap[index] = 'nisn'
-                else if (mainHeader === 'nipd') colMap[index] = 'nipd'
-                else if (mainHeader.includes('rombel') || mainHeader === 'kelas') colMap[index] = 'rombel'
+                // 1. Basic Identity
+                if (h1 === 'nama' || h1 === 'nama peserta didik') colMap[index] = 'nama'
+                else if (h1 === 'nisn' || h2.includes('nisn')) colMap[index] = 'nisn'
+                else if (h1 === 'nipd' || h2.includes('nipd')) colMap[index] = 'nipd'
 
-                // Gender: JK or L/P
-                else if (mainHeader === 'jk' || mainHeader === 'l/p' || mainHeader === 'jenis kelamin') colMap[index] = 'jk'
+                // 2. Class/Rombel
+                else if (h1.includes('rombel') || h2.includes('rombel') || h1 === 'kelas') colMap[index] = 'rombel'
 
-                // Birth Info
-                else if (mainHeader.includes('tempat lahir')) colMap[index] = 'tempat_lahir'
-                else if (mainHeader.includes('tanggal lahir')) colMap[index] = 'tanggal_lahir'
+                // 3. Gender
+                else if (h1 === 'jk' || h1 === 'l/p' || h1.includes('jenis kelamin')) colMap[index] = 'jk'
+                else if (h2 === 'jk' || h2 === 'l/p') colMap[index] = 'jk'
 
-                // Identity
-                else if (mainHeader === 'nik') colMap[index] = 'nik'
-                else if (mainHeader === 'agama') colMap[index] = 'agama'
+                // 4. Birth Info
+                else if (h1.includes('tempat lahir') || h2.includes('tempat lahir')) colMap[index] = 'tempat_lahir'
+                else if (h1.includes('tanggal lahir') || h2.includes('tanggal lahir')) colMap[index] = 'tanggal_lahir'
 
-                // Address
-                else if (mainHeader === 'alamat' || mainHeader.includes('jalan')) colMap[index] = 'alamat'
-                else if (mainHeader === 'rt') colMap[index] = 'rt'
-                else if (mainHeader === 'rw') colMap[index] = 'rw'
-                else if (mainHeader.includes('dusun')) colMap[index] = 'dusun'
-                else if (mainHeader.includes('kelurahan') || mainHeader.includes('desa')) colMap[index] = 'kelurahan'
-                else if (mainHeader.includes('kecamatan')) colMap[index] = 'kecamatan'
-                else if (mainHeader.includes('kode pos')) colMap[index] = 'kode_pos'
-                else if (mainHeader.includes('jenis tinggal')) colMap[index] = 'jenis_tinggal'
+                // 5. Personal Details
+                else if (h1 === 'nik' || h2 === 'nik' || h1.includes('nomor induk kependudukan')) colMap[index] = 'nik'
+                else if (h1 === 'agama' || h2 === 'agama') colMap[index] = 'agama'
 
-                // Parents (Handling Merged Headers)
-                // If main header is "Data Ayah" or empty (merged), check subheader
-                else if (subHeader.includes('nama ayah')) colMap[index] = 'nama_ayah'
-                else if (subHeader.includes('nik ayah')) colMap[index] = 'nik_ayah'
-                else if (subHeader.includes('nama ibu')) colMap[index] = 'nama_ibu'
-                else if (subHeader.includes('nik ibu')) colMap[index] = 'nik_ibu'
-
-                // Fallback for flat headers (incase user removed merge)
-                else if (mainHeader.includes('nama ayah')) colMap[index] = 'nama_ayah'
-                else if (mainHeader.includes('nik ayah')) colMap[index] = 'nik_ayah'
-                else if (mainHeader.includes('nama ibu')) colMap[index] = 'nama_ibu'
-                else if (mainHeader.includes('nik ibu')) colMap[index] = 'nik_ibu'
+                // 6. Address
+                else if (h1 === 'alamat' || h1.includes('jalan')) colMap[index] = 'alamat'
+                else if (h1 === 'rt' || h2 === 'rt') colMap[index] = 'rt'
+                else if (h1 === 'rw' || h2 === 'rw') colMap[index] = 'rw'
+                else if (h1.includes('dusun') || h2.includes('dusun')) colMap[index] = 'dusun'
             })
 
             // 4. Extract Data
-            // If subheaders existed (e.g. parents), data starts at headerRowIndex + 2. Else + 1.
-            // Heuristic: check if the row after headerRow matches the subheader pattern (e.g. has "Nama Ayah").
-            // If subHeaderRow has "Nama Ayah", then that row is a header row, so data starts after it.
+            // We need to determine where data starts. 
+            // If we found matches in 'h2' (subHeaderRow), it implies a 2-row header.
+            // Heuristic: If row[headerRowIndex + 1] looks like a header (mostly strings), we skip it.
+            // But 'hasSubHeader' check is safer.
+            const hasSubHeader = subHeaderRow.some(s => {
+                const str = String(s).toLowerCase();
+                return str.includes('nama') || str.includes('nik') || str.includes('tgl');
+            });
 
-            const hasSubHeader = subHeaderRow.some(s => String(s).toLowerCase().includes('nama ayah'))
             const dataStartIndex = headerRowIndex + (hasSubHeader ? 2 : 1)
 
             const normalizedData = []

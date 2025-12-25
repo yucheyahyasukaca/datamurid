@@ -129,14 +129,18 @@ export default function StudentDashboard() {
                 </div>
 
                 <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-y-6 md:gap-y-8 gap-x-12">
-                    {Object.entries(studentData).map(([key, value]) => (
-                        <div key={key} className="border-b border-white/5 pb-2 group hover:border-white/20 transition-colors">
-                            <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 group-hover:text-slate-300 transition-colors">
-                                {key.replace(/_/g, ' ')}
-                            </label>
-                            <div className="font-medium text-white text-base md:text-lg break-words">{value}</div>
-                        </div>
-                    ))}
+                    {Object.entries(studentData)
+                        .filter(([key]) => !['id', 'created_at', 'updated_at', 'is_verified', 'verified_at', 'user_id'].includes(key))
+                        .map(([key, value]) => (
+                            <div key={key} className="border-b border-white/5 pb-2 group hover:border-white/20 transition-colors">
+                                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1 group-hover:text-slate-300 transition-colors">
+                                    {key.replace(/_/g, ' ')}
+                                </label>
+                                <div className="font-medium text-white text-base md:text-lg break-words">
+                                    {String(value || '-')}
+                                </div>
+                            </div>
+                        ))}
                 </div>
 
                 {/* Validation Action */}
