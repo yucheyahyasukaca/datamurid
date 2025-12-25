@@ -27,25 +27,27 @@ export default function StudentDashboard() {
     const fetchStudentData = async (nisn: string) => {
         try {
             setLoading(true)
-            const { data, error } = await supabase
-                .from('students')
-                .select('*')
-                .eq('nisn', nisn)
-                .single()
+            // Fetch via our secure API to ensure we get all data (bypassing RLS)
+            const response = await fetch(`/api/students/detail?nisn=${nisn}`)
+            const result = await response.json()
 
-            if (error) throw error
+            if (!response.ok) throw new Error(result.error || 'Gagal mengambil data')
 
-            if (data) {
-                setStudentData(data)
-                setIsVerified(data.is_verified)
+            if (result.data) {
+                setStudentData(result.data)
+                setIsVerified(result.data.is_verified)
             }
         } catch (error) {
             console.error('Error fetching student data:', error)
-            // Handle not found
-            // router.push('/login')
+            // Handle error visually if needed
         } finally {
             setLoading(false)
         }
+    }
+
+    const handleLogout = () => {
+        localStorage.removeItem('student_nisn')
+        router.replace('/login')
     }
 
     const handleExport = () => {
@@ -119,6 +121,13 @@ export default function StudentDashboard() {
                 </button>
             </div>
 
+            {/* DEBUG SECTION - TEMPORARY */}
+            <div className="bg-black/50 p-4 m-4 rounded text-xs font-mono text-green-400 overflow-auto border border-green-500/30">
+                <p className="mb-2 font-bold text-white">DEBUG INFO:</p>
+                <p>Fetching NISN: {localStorage.getItem('student_nisn')}</p>
+                <pre>{JSON.stringify(studentData, null, 2)}</pre>
+            </div>
+
             {/* Main Data Panel */}
             <div className="glass-panel overflow-hidden">
                 <div className="p-4 md:p-6 border-b border-white/5 bg-white/5 flex flex-row justify-between items-center gap-3">
@@ -180,36 +189,38 @@ export default function StudentDashboard() {
             </div>
 
             {/* Custom Confirmation Modal */}
-            {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-enter">
-                    <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl transform scale-100 transition-all">
-                        <div className="text-center mb-6">
-                            <div className="w-16 h-16 bg-orange-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <svg className="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            {
+                showModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-enter">
+                        <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl transform scale-100 transition-all">
+                            <div className="text-center mb-6">
+                                <div className="w-16 h-16 bg-orange-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <svg className="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                </div>
+                                <h3 className="text-xl font-bold text-white mb-2">Konfirmasi Validasi</h3>
+                                <p className="text-slate-400 text-sm">
+                                    Apakah Anda yakin data ini sudah benar? <br />
+                                    Data yang sudah divalidasi <span className="text-orange-400 font-semibold">tidak dapat diubah lagi</span>.
+                                </p>
                             </div>
-                            <h3 className="text-xl font-bold text-white mb-2">Konfirmasi Validasi</h3>
-                            <p className="text-slate-400 text-sm">
-                                Apakah Anda yakin data ini sudah benar? <br />
-                                Data yang sudah divalidasi <span className="text-orange-400 font-semibold">tidak dapat diubah lagi</span>.
-                            </p>
-                        </div>
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => setShowModal(false)}
-                                className="flex-1 px-4 py-2.5 rounded-lg border border-white/10 text-slate-300 font-medium hover:bg-white/5 transition-colors"
-                            >
-                                Batal
-                            </button>
-                            <button
-                                onClick={confirmValidation}
-                                className="flex-1 px-4 py-2.5 rounded-lg bg-orange-600 text-white font-bold hover:bg-orange-500 transition-colors shadow-lg shadow-orange-600/20"
-                            >
-                                Ya, Data Benar
-                            </button>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setShowModal(false)}
+                                    className="flex-1 px-4 py-2.5 rounded-lg border border-white/10 text-slate-300 font-medium hover:bg-white/5 transition-colors"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    onClick={confirmValidation}
+                                    className="flex-1 px-4 py-2.5 rounded-lg bg-orange-600 text-white font-bold hover:bg-orange-500 transition-colors shadow-lg shadow-orange-600/20"
+                                >
+                                    Ya, Data Benar
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     )
 }

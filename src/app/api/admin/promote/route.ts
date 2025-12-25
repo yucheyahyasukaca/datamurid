@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/utils/supabase-admin'
 import { supabase } from '@/utils/supabase'
 
+export const runtime = 'edge'
+
 export async function POST(req: NextRequest) {
     try {
         const { email } = await req.json() // acts as identifier (email or uuid)

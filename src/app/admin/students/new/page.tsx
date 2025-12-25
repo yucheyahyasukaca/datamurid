@@ -113,7 +113,8 @@ export default function NewStudentPage() {
             headerRow.forEach((cell: any, index: number) => {
                 const h1 = String(cell || '').trim().toLowerCase()
                 const h2 = String(subHeaderRow[index] || '').trim().toLowerCase()
-                const combined = `${h1} ${h2}`
+                // Create a clean combined string for checking "Data Ayah" + "Nama" -> "data ayah nama"
+                const combined = `${h1} ${h2}`.trim()
 
                 // 1. Basic Identity
                 if (h1 === 'nama' || h1 === 'nama peserta didik') colMap[index] = 'nama'
@@ -124,29 +125,37 @@ export default function NewStudentPage() {
                 else if (h1.includes('rombel') || h2.includes('rombel') || h1 === 'kelas') colMap[index] = 'rombel'
 
                 // 3. Gender
-                else if (h1 === 'jk' || h1 === 'l/p' || h1.includes('jenis kelamin')) colMap[index] = 'jk'
+                // Only strict check for 'L/P' to avoid false positives
+                else if (h1 === 'jk' || h1 === 'l/p' || h1 === 'jenis kelamin') colMap[index] = 'jk'
                 else if (h2 === 'jk' || h2 === 'l/p') colMap[index] = 'jk'
 
                 // 4. Birth Info
-                else if (h1.includes('tempat lahir') || h2.includes('tempat lahir')) colMap[index] = 'tempat_lahir'
-                else if (h1.includes('tanggal lahir') || h2.includes('tanggal lahir')) colMap[index] = 'tanggal_lahir'
+                else if (combined.includes('tempat lahir')) colMap[index] = 'tempat_lahir'
+                else if (combined.includes('tanggal lahir')) colMap[index] = 'tanggal_lahir'
 
                 // 5. Personal Details
-                else if (h1 === 'nik' || h2 === 'nik' || h1.includes('nomor induk kependudukan')) colMap[index] = 'nik'
-                else if (h1 === 'agama' || h2 === 'agama') colMap[index] = 'agama'
+                else if (combined.includes('nik') && !combined.includes('ayah') && !combined.includes('ibu') && !combined.includes('wali')) colMap[index] = 'nik'
+                else if (combined.includes('agama')) colMap[index] = 'agama'
 
                 // 6. Address
                 else if (h1 === 'alamat' || h1.includes('jalan')) colMap[index] = 'alamat'
-                else if (h1 === 'rt' || h2 === 'rt') colMap[index] = 'rt'
-                else if (h1 === 'rw' || h2 === 'rw') colMap[index] = 'rw'
-                else if (h1.includes('dusun') || h2.includes('dusun')) colMap[index] = 'dusun'
+                else if (combined.includes('rt')) colMap[index] = 'rt'
+                else if (combined.includes('rw')) colMap[index] = 'rw'
+                else if (combined.includes('dusun')) colMap[index] = 'dusun'
+                else if (combined.includes('kelurahan') || combined.includes('desa')) colMap[index] = 'kelurahan'
+                else if (combined.includes('kecamatan')) colMap[index] = 'kecamatan'
+                else if (combined.includes('kode pos')) colMap[index] = 'kode_pos'
+                else if (combined.includes('jenis tinggal')) colMap[index] = 'jenis_tinggal'
+
+                // 7. Parents (Robust Combined Search)
+                // Now checking 'combined' so "Data Ayah" (h1) + "Nama" (h2) = "data ayah nama" -> matches!
+                else if (combined.includes('nama ayah')) colMap[index] = 'nama_ayah'
+                else if (combined.includes('nik ayah')) colMap[index] = 'nik_ayah'
+                else if (combined.includes('nama ibu')) colMap[index] = 'nama_ibu'
+                else if (combined.includes('nik ibu')) colMap[index] = 'nik_ibu'
             })
 
             // 4. Extract Data
-            // We need to determine where data starts. 
-            // If we found matches in 'h2' (subHeaderRow), it implies a 2-row header.
-            // Heuristic: If row[headerRowIndex + 1] looks like a header (mostly strings), we skip it.
-            // But 'hasSubHeader' check is safer.
             const hasSubHeader = subHeaderRow.some(s => {
                 const str = String(s).toLowerCase();
                 return str.includes('nama') || str.includes('nik') || str.includes('tgl');
