@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function Home() {
   return (
@@ -16,12 +17,14 @@ export default function Home() {
 
         {/* Hero Section - Responsive Spacing */}
         <div className="space-y-8 md:space-y-10 animate-enter mb-12 md:mb-24 px-2">
-          <div className="inline-flex items-center gap-3 px-4 py-2 md:px-6 md:py-3 rounded-full border border-white/5 bg-white/5 backdrop-blur-2xl shadow-xl shadow-black/10 hover:border-white/10 transition-colors cursor-default">
-            <span className="relative flex h-2 w-2 md:h-3 md:w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 md:h-3 md:w-3 bg-green-500"></span>
-            </span>
-            <span className="text-xs md:text-sm font-medium tracking-widest text-slate-300 uppercase">Portal Akademik Resmi</span>
+          <div className="mb-8 flex justify-center">
+            <Image
+              src="/sman1pati.png"
+              alt="Logo SMAN 1 Pati"
+              width={120}
+              height={120}
+              className="drop-shadow-2xl hover:scale-105 transition-transform duration-300"
+            />
           </div>
 
           <div className="space-y-3 md:space-y-4">

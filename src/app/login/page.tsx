@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { supabase } from '@/utils/supabase'
 
 export default function LoginPage() {
@@ -116,8 +117,14 @@ export default function LoginPage() {
             <div className="w-full max-w-md relative z-10 animate-enter">
                 {/* School Logo/Brand */}
                 <div className="text-center mb-8">
-                    <div className="w-20 h-20 bg-gradient-to-tr from-blue-600 to-orange-500 rounded-2xl mx-auto flex items-center justify-center shadow-2xl shadow-blue-500/20 mb-4 transform rotate-3">
-                        <span className="text-3xl font-bold text-white -rotate-3">SM</span>
+                    <div className="flex justify-center mb-6">
+                        <Image
+                            src="/sman1pati.png"
+                            alt="Logo SMAN 1 Pati"
+                            width={100}
+                            height={100}
+                            className="drop-shadow-2xl hover:scale-105 transition-transform duration-300"
+                        />
                     </div>
                     <h1 className="text-3xl font-bold text-white mb-2">SMAN 1 Pati</h1>
                     <p className="text-slate-400 text-sm">Portal Data Murid & Administrasi</p>
