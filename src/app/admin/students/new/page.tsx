@@ -78,63 +78,167 @@ export default function NewStudentPage() {
         if (!file) return
 
         setImportLoading(true)
+        setProgress(0)
+
         try {
             const data = await file.arrayBuffer()
             const workbook = XLSX.read(data)
             const worksheet = workbook.Sheets[workbook.SheetNames[0]]
-            const jsonData = XLSX.utils.sheet_to_json(worksheet)
 
-            if (jsonData.length === 0) throw new Error('File Excel kosong data.')
+            // Refined Parsing: Handle Merged Headers (Dapodik Style)
+            // 1. Get raw data as 2D array
+            const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][]
 
-            // Map keys to match database columns (Assuming generic logic or template matching)
-            // Ideally we validate or map columns here. For now, assuming user uses correct headers.
-            // Let's normalize keys to lowercase just in case.
+            if (rawRows.length === 0) throw new Error('File Excel kosong.')
 
-            const normalizedData = jsonData.map((row: any) => {
-                const newRow: any = {}
-                Object.keys(row).forEach(key => {
-                    // Simple normalization: remove special chars, lowercase, replace space with underscore
-                    // But for robustness, we might just assume headers match DB or are simple.
-                    // For this MVP, let's just pass row and hope headers are "nama", "nisn", etc.
-                    // Or we can be smart and map standard Indonesian headers like "Nama Lengkap" -> "nama"
+            // 2. Find Header Row (Search for "Nama" or "Nama Peserta Didik")
+            let headerRowIndex = -1
+            for (let i = 0; i < Math.min(rawRows.length, 10); i++) {
+                const rowStr = JSON.stringify(rawRows[i]).toLowerCase()
+                if (rowStr.includes('nama')) {
+                    headerRowIndex = i
+                    break
+                }
+            }
 
-                    const lowerKey = key.toLowerCase()
-                    if (lowerKey.includes('nama')) newRow['nama'] = row[key]
-                    else if (lowerKey.includes('nisn')) newRow['nisn'] = String(row[key]) // Ensure string
-                    else if (lowerKey.includes('rombel') || lowerKey.includes('kelas')) newRow['rombel'] = row[key]
-                    else if (lowerKey.includes('nipd')) newRow['nipd'] = String(row[key])
-                    else if (lowerKey.includes('jk') || lowerKey.includes('kelamin')) newRow['jk'] = row[key]
-                    else if (lowerKey.includes('tempat lahir')) newRow['tempat_lahir'] = row[key]
-                    else if (lowerKey.includes('tanggal lahir')) {
-                        // Convert Excel date to YYYY-MM-DD if needed, or string
-                        // XLSX usually parses dates as numbers or strings depending on cell format.
-                        // For simplicity, let's assume text or try to stringify.
-                        newRow['tanggal_lahir'] = String(row[key])
+            if (headerRowIndex === -1) throw new Error('Format header tidak dikenali. Pastikan ada kolom "Nama" atau "Nama Peserta Didik".')
+
+            // 3. Map Column Indices to DB Fields
+            // We check Row[header] AND Row[header+1] to handle merged headers like "Data Ayah" -> "Nama Ayah"
+            const headerRow = rawRows[headerRowIndex]
+            const subHeaderRow = rawRows[headerRowIndex + 1] || []
+
+            const colMap: { [index: number]: string } = {}
+
+            headerRow.forEach((cell: any, index: number) => {
+                const mainHeader = String(cell || '').trim().toLowerCase()
+                const subHeader = String(subHeaderRow[index] || '').trim().toLowerCase()
+
+                // Composite check matching the User's Image structure
+                if (mainHeader === 'nama' || mainHeader === 'nama peserta didik') colMap[index] = 'nama'
+                else if (mainHeader === 'nisn') colMap[index] = 'nisn'
+                else if (mainHeader === 'nipd') colMap[index] = 'nipd'
+                else if (mainHeader.includes('rombel') || mainHeader === 'kelas') colMap[index] = 'rombel'
+
+                // Gender: JK or L/P
+                else if (mainHeader === 'jk' || mainHeader === 'l/p' || mainHeader === 'jenis kelamin') colMap[index] = 'jk'
+
+                // Birth Info
+                else if (mainHeader.includes('tempat lahir')) colMap[index] = 'tempat_lahir'
+                else if (mainHeader.includes('tanggal lahir')) colMap[index] = 'tanggal_lahir'
+
+                // Identity
+                else if (mainHeader === 'nik') colMap[index] = 'nik'
+                else if (mainHeader === 'agama') colMap[index] = 'agama'
+
+                // Address
+                else if (mainHeader === 'alamat' || mainHeader.includes('jalan')) colMap[index] = 'alamat'
+                else if (mainHeader === 'rt') colMap[index] = 'rt'
+                else if (mainHeader === 'rw') colMap[index] = 'rw'
+                else if (mainHeader.includes('dusun')) colMap[index] = 'dusun'
+                else if (mainHeader.includes('kelurahan') || mainHeader.includes('desa')) colMap[index] = 'kelurahan'
+                else if (mainHeader.includes('kecamatan')) colMap[index] = 'kecamatan'
+                else if (mainHeader.includes('kode pos')) colMap[index] = 'kode_pos'
+                else if (mainHeader.includes('jenis tinggal')) colMap[index] = 'jenis_tinggal'
+
+                // Parents (Handling Merged Headers)
+                // If main header is "Data Ayah" or empty (merged), check subheader
+                else if (subHeader.includes('nama ayah')) colMap[index] = 'nama_ayah'
+                else if (subHeader.includes('nik ayah')) colMap[index] = 'nik_ayah'
+                else if (subHeader.includes('nama ibu')) colMap[index] = 'nama_ibu'
+                else if (subHeader.includes('nik ibu')) colMap[index] = 'nik_ibu'
+
+                // Fallback for flat headers (incase user removed merge)
+                else if (mainHeader.includes('nama ayah')) colMap[index] = 'nama_ayah'
+                else if (mainHeader.includes('nik ayah')) colMap[index] = 'nik_ayah'
+                else if (mainHeader.includes('nama ibu')) colMap[index] = 'nama_ibu'
+                else if (mainHeader.includes('nik ibu')) colMap[index] = 'nik_ibu'
+            })
+
+            // 4. Extract Data
+            // If subheaders existed (e.g. parents), data starts at headerRowIndex + 2. Else + 1.
+            // Heuristic: check if the row after headerRow matches the subheader pattern (e.g. has "Nama Ayah").
+            // If subHeaderRow has "Nama Ayah", then that row is a header row, so data starts after it.
+
+            const hasSubHeader = subHeaderRow.some(s => String(s).toLowerCase().includes('nama ayah'))
+            const dataStartIndex = headerRowIndex + (hasSubHeader ? 2 : 1)
+
+            const normalizedData = []
+
+            for (let i = dataStartIndex; i < rawRows.length; i++) {
+                const row = rawRows[i]
+                if (!row || row.length === 0) continue
+
+                const newRow: any = { is_verified: false }
+                let hasIdentity = false
+
+                Object.keys(colMap).forEach((colIdxStr) => {
+                    const colIdx = parseInt(colIdxStr)
+                    const field = colMap[colIdx]
+                    let value = row[colIdx]
+
+                    if (value !== undefined && value !== null) {
+                        // Date Handling
+                        if (field === 'tanggal_lahir') {
+                            // Check if typical Excel date serial (number)
+                            if (typeof value === 'number') {
+                                // Convert Excel serial to JS Date
+                                const date = new Date(Math.round((value - 25569) * 86400 * 1000))
+                                // Format YYYY-MM-DD
+                                newRow[field] = date.toISOString().split('T')[0]
+                            } else {
+                                newRow[field] = String(value)
+                            }
+                        } else {
+                            newRow[field] = String(value).trim()
+                        }
                     }
-                    else newRow[lowerKey] = row[key] // Fallback
                 })
 
-                if (!newRow.nama || !newRow.nisn) return null // Skip invalid rows
-
-                return {
-                    ...newRow,
-                    is_verified: false
+                if (newRow.nama && newRow.nisn) {
+                    normalizedData.push(newRow)
                 }
-            }).filter(Boolean)
+            }
 
-            if (normalizedData.length === 0) throw new Error('Tidak ada data valid ditemukan (Periksa header kolom: Nama, NISN).')
+            if (normalizedData.length === 0) throw new Error('Tidak ada data valid ditemukan. Pastikan format kolom sesuai.')
 
-            const { error } = await supabase.from('students').insert(normalizedData)
-            if (error) throw error
+            // Chunk Data to show progress
+            const CHUNK_SIZE = 20;
+            const totalChunks = Math.ceil(normalizedData.length / CHUNK_SIZE)
+            let successCount = 0
+            let errorCount = 0
 
-            alert(`Berhasil mengimpor ${normalizedData.length} data siswa!`)
+            for (let i = 0; i < totalChunks; i++) {
+                const chunk = normalizedData.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE)
+
+                // Call API
+                const response = await fetch('/api/students/import', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ students: chunk })
+                })
+
+                const result = await response.json()
+
+                if (result.stats) {
+                    successCount += result.stats.success
+                    errorCount += result.stats.failed
+                }
+
+                // Update Progress
+                const percent = Math.round(((i + 1) / totalChunks) * 100)
+                setProgress(percent)
+            }
+
+            alert(`Selesai! Berhasil: ${successCount}, Gagal: ${errorCount}`)
             router.push('/admin')
 
         } catch (error: any) {
             alert('Gagal import file: ' + error.message)
         } finally {
             setImportLoading(false)
-            e.target.value = '' // Reset input
+            setProgress(0)
+            e.target.value = ''
         }
     }
 

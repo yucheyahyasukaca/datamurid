@@ -11,6 +11,10 @@ export default function AdminDashboard() {
     const [students, setStudents] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
 
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(1)
+    const itemsPerPage = 20
+
     // Fetch Data from Supabase
     useEffect(() => {
         fetchStudents()
@@ -50,6 +54,18 @@ export default function AdminDashboard() {
             return matchesSearch && matchesRombel
         })
     }, [searchTerm, selectedRombel, students])
+
+    // Reset pagination when filter changes
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [searchTerm, selectedRombel])
+
+    const totalPages = Math.ceil(filteredStudents.length / itemsPerPage)
+
+    const paginatedStudents = useMemo(() => {
+        const start = (currentPage - 1) * itemsPerPage
+        return filteredStudents.slice(start, start + itemsPerPage)
+    }, [currentPage, filteredStudents])
 
     // Stats Calculation based on Real Filtered Data
     const stats = useMemo(() => {
@@ -178,15 +194,15 @@ export default function AdminDashboard() {
                                 <tr>
                                     <td colSpan={8} className="px-6 py-12 text-center text-slate-500">
                                         <div className="flex justify-center items-center gap-2">
-                                            <svg className="w-5 h-5 animate-spin data-text-blue-500" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                            <svg className="w-5 h-5 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                                             Sedang memuat data...
                                         </div>
                                     </td>
                                 </tr>
-                            ) : filteredStudents.length > 0 ? (
-                                filteredStudents.map((student, index) => (
+                            ) : paginatedStudents.length > 0 ? (
+                                paginatedStudents.map((student, index) => (
                                     <tr key={student.id} className="hover:bg-white/5 transition-colors">
-                                        <td className="px-6 py-4">{index + 1}</td>
+                                        <td className="px-6 py-4">{(currentPage - 1) * itemsPerPage + index + 1}</td>
                                         <td className="px-6 py-4 font-medium text-white">{student.nama}</td>
                                         <td className="px-6 py-4 text-slate-400">{student.rombel || '-'}</td>
                                         <td className="px-6 py-4">{student.nipd || '-'}</td>
@@ -215,9 +231,38 @@ export default function AdminDashboard() {
                         </tbody>
                     </table>
                 </div>
-                <div className="p-4 border-t border-white/5 bg-white/5 text-xs text-center text-slate-500 rounded-b-xl relative z-20">
-                    {loading ? 'Memuat data...' : `Menampilkan ${filteredStudents.length} dari ${students.length} data`}
-                </div>
+
+                {/* Pagination Controls */}
+                {!loading && filteredStudents.length > 0 && (
+                    <div className="p-4 border-t border-white/5 bg-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
+                        <div className="text-slate-400">
+                            Menampilkan <span className="font-semibold text-white">{(currentPage - 1) * itemsPerPage + 1}</span> - <span className="font-semibold text-white">{Math.min(currentPage * itemsPerPage, filteredStudents.length)}</span> dari <span className="font-semibold text-white">{filteredStudents.length}</span> data
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                                className="p-2 rounded-lg bg-slate-800 border border-white/10 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                                <svg className="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
+                            </button>
+
+                            {/* Simple Page Indicator - can be expanded to numbers if needed */}
+                            <div className="px-4 py-2 rounded-lg bg-slate-900 border border-white/10 text-slate-300 font-medium">
+                                Halaman {currentPage} / {totalPages}
+                            </div>
+
+                            <button
+                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                disabled={currentPage === totalPages}
+                                className="p-2 rounded-lg bg-slate-800 border border-white/10 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            >
+                                <svg className="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     )

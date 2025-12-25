@@ -74,7 +74,6 @@ export async function POST(req: NextRequest) {
                     .upsert({
                         ...student,
                         // If you added a user_id column, add it here: user_id: userId
-                        updated_at: new Date().toISOString()
                     }, { onConflict: 'nisn' })
 
                 if (dbError) throw dbError
