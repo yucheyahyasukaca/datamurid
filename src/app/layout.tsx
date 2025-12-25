@@ -2,8 +2,13 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Data Murid - SMA Negeri 1 Pati',
-  description: 'Portal Resmi Data Murid SMA Negeri 1 Pati',
+  title: 'Pusat Layanan Data Terpadu & Verifikasi Siswa Digital SMA Negeri 1 Pati',
+  description: 'Portal Resmi Pusat Layanan Data Terpadu & Verifikasi Siswa Digital SMA Negeri 1 Pati',
+  icons: {
+    icon: '/favicon.png',
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
+  },
 }
 
 export default function RootLayout({

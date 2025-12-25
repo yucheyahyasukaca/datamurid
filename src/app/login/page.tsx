@@ -49,35 +49,24 @@ export default function LoginPage() {
                 router.push('/admin')
 
             } else {
-                // Student "Fake Auth" via Table Lookup
-                const cleanNisn = formData.identifier.replace(/\D/g, '')
+                // Student Login via Secure API
+                const res = await fetch('/api/auth/student-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nisn: formData.identifier,
+                        password: formData.password
+                    })
+                })
 
-                // Fetch student by NISN
-                const { data: student, error: studentError } = await supabase
-                    .from('students')
-                    .select('nisn, tanggal_lahir, nama')
-                    .eq('nisn', cleanNisn)
-                    .single()
+                const result = await res.json()
 
-                if (studentError || !student) {
-                    throw new Error('NISN tidak ditemukan.')
+                if (!res.ok) {
+                    throw new Error(result.error || 'Gagal masuk')
                 }
 
-                // Verify Date of Birth (Password)
-                const inputPwd = formData.password.replace(/\D/g, '') // Remove non-digits
-
-                const dbDate = student.tanggal_lahir // "YYYY-MM-DD"
-                const [yyyy, mm, dd] = dbDate.split('-')
-                const validPassword = `${dd}${mm}${yyyy}`
-
-                if (inputPwd !== validPassword) {
-                    // Fallback: also check if they typed YYYYMMDD
-                    if (inputPwd !== `${yyyy}${mm}${dd}`) {
-                        throw new Error('Tanggal lahir (password) salah. Gunakan format DDMMYYYY (Contoh: 25012008).')
-                    }
-                }
-
-                // "Login" Successful
+                // Login Successful
+                const student = result.data
                 localStorage.setItem('student_nisn', student.nisn)
 
                 // Set Student Session Cookie for Middleware
