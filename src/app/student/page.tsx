@@ -121,13 +121,6 @@ export default function StudentDashboard() {
                 </button>
             </div>
 
-            {/* DEBUG SECTION - TEMPORARY */}
-            <div className="bg-black/50 p-4 m-4 rounded text-xs font-mono text-green-400 overflow-auto border border-green-500/30">
-                <p className="mb-2 font-bold text-white">DEBUG INFO:</p>
-                <p>Fetching NISN: {localStorage.getItem('student_nisn')}</p>
-                <pre>{JSON.stringify(studentData, null, 2)}</pre>
-            </div>
-
             {/* Main Data Panel */}
             <div className="glass-panel overflow-hidden">
                 <div className="p-4 md:p-6 border-b border-white/5 bg-white/5 flex flex-row justify-between items-center gap-3">
