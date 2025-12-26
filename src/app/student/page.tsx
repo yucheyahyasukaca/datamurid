@@ -459,7 +459,28 @@ export default function StudentDashboard() {
                 {changeRequest && changeRequest.status === 'REVIEW' && (
                     <div className="bg-purple-500/10 border border-purple-500/20 p-4 rounded-xl text-purple-200">
                         <strong className="block mb-1 text-purple-400">Menunggu Validasi</strong>
-                        <p className="text-sm">Data perubahan telah disimpan. Admin akan memvalidasi data Anda segera.</p>
+                        <p className="text-sm mb-3">Data perubahan telah disimpan. Admin akan memvalidasi data Anda segera.</p>
+
+                        <div className="bg-blue-500/10 border border-blue-500/20 p-3 rounded-lg mt-3 text-blue-200">
+                            <strong className="block mb-2 text-blue-300 text-xs font-semibold uppercase tracking-wide flex items-center gap-2">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                Langkah Validasi
+                            </strong>
+                            <div className="space-y-2 text-xs">
+                                <p className="flex items-start gap-2">
+                                    <span className="text-blue-400 font-bold mt-0.5">1.</span>
+                                    <span>Bawa <span className="font-semibold text-white">dokumen asli</span> terkait perubahan data (misal: jika ubah NIK/alamat, bawa <span className="font-semibold text-white">Kartu Keluarga</span>)</span>
+                                </p>
+                                <p className="flex items-start gap-2">
+                                    <span className="text-blue-400 font-bold mt-0.5">2.</span>
+                                    <span>Datang ke <span className="font-semibold text-white">Bagian Dapodik</span> di <span className="font-semibold text-white">Ruang Kurikulum</span></span>
+                                </p>
+                                <p className="flex items-start gap-2">
+                                    <span className="text-blue-400 font-bold mt-0.5">3.</span>
+                                    <span>Validasi dilakukan pada <span className="font-semibold text-white">jam kerja</span> (Senin-Jumat, 07.30-15.00)</span>
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 )}
                 {changeRequest && changeRequest.status === 'REJECTED' && (
