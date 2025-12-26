@@ -16,6 +16,8 @@ export async function GET(req: NextRequest) {
             .from('students')
             .select('*')
             .eq('nisn', nisn)
+            .order('is_verified', { ascending: false })
+            .limit(1)
             .single()
 
         if (error) throw error

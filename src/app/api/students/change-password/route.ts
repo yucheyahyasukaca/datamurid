@@ -16,6 +16,8 @@ export async function POST(request: Request) {
             .from('students')
             .select('id, nisn, tanggal_lahir, password')
             .eq('nisn', nisn)
+            .order('is_verified', { ascending: false })
+            .limit(1)
             .single()
 
         if (fetchError || !student) {

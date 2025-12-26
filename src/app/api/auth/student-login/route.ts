@@ -18,6 +18,8 @@ export async function POST(request: Request) {
             .from('students')
             .select('id, nisn, nama, tanggal_lahir, password')
             .eq('nisn', cleanNisn)
+            .order('is_verified', { ascending: false })
+            .limit(1)
             .single()
 
         if (fetchError || !student) {

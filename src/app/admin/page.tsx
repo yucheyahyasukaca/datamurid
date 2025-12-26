@@ -1,48 +1,120 @@
 'use client'
 
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useMemo, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/utils/supabase'
+import { useDebounce } from '@/hooks/useDebounce'
 import * as XLSX from 'xlsx'
 
 export default function AdminDashboard() {
+    // Filter State
     const [searchTerm, setSearchTerm] = useState('')
+    const debouncedSearchTerm = useDebounce(searchTerm, 500)
     const [selectedRombel, setSelectedRombel] = useState('')
+
+    // Data State
     const [students, setStudents] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
+    const [totalStudents, setTotalStudents] = useState(0)
+
+    // Stats State
+    const [stats, setStats] = useState({
+        total: 0,
+        verified: 0,
+        pending: 0
+    })
 
     // Pagination State
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 20
 
-    // Fetch Data from Supabase
+    const [rombelOptions, setRombelOptions] = useState<string[]>([])
+
+    // Security Warning
     const [showSecurityWarning, setShowSecurityWarning] = useState(false)
 
     useEffect(() => {
-        // ... (existing fetch) ...
-        const hasSeenWarning = localStorage.getItem('admin_security_warning_seen_v1')
+        const hasSeenWarning = localStorage.getItem('admin_security_warning_seen_v2')
         if (!hasSeenWarning) {
             setTimeout(() => setShowSecurityWarning(true), 1000)
         }
 
-        fetchStudents()
+        fetchRombels() // Fetch rombels once
     }, [])
 
+    useEffect(() => {
+        setCurrentPage(1) // Reset to page 1 on filter change
+    }, [debouncedSearchTerm, selectedRombel])
+
+    useEffect(() => {
+        fetchStudents()
+        fetchStats()
+    }, [currentPage, debouncedSearchTerm, selectedRombel])
+
     const handleCloseSecurityWarning = () => {
-        localStorage.setItem('admin_security_warning_seen_v1', 'true')
+        localStorage.setItem('admin_security_warning_seen_v2', 'true')
         setShowSecurityWarning(false)
+    }
+
+    const fetchRombels = async () => {
+        const { data, error } = await supabase
+            .from('students')
+            .select('rombel')
+
+        if (data) {
+            const unique = Array.from(new Set(data.map(d => d.rombel).filter(Boolean))).sort() as string[]
+            setRombelOptions(unique)
+        }
+    }
+
+    const fetchStats = async () => {
+        try {
+            // Parallel requests for counts
+            const [totalRes, verifiedRes, pendingRes] = await Promise.all([
+                supabase.from('students').select('*', { count: 'exact', head: true }), // Total
+                supabase.from('students').select('*', { count: 'exact', head: true }).eq('is_verified', true), // Verified
+                supabase.from('students').select('*', { count: 'exact', head: true }).eq('is_verified', false) // Pending
+            ])
+
+            setStats({
+                total: totalRes.count || 0,
+                verified: verifiedRes.count || 0,
+                pending: pendingRes.count || 0
+            })
+        } catch (error) {
+            console.error('Error fetching stats:', error)
+        }
     }
 
     const fetchStudents = async () => {
         try {
             setLoading(true)
-            const { data, error } = await supabase
+
+            let query = supabase
                 .from('students')
-                .select('*')
+                .select('*', { count: 'exact' })
                 .order('nama', { ascending: true })
 
+            // Apply Filters
+            if (debouncedSearchTerm) {
+                query = query.or(`nama.ilike.%${debouncedSearchTerm}%,nisn.ilike.%${debouncedSearchTerm}%,nipd.ilike.%${debouncedSearchTerm}%`)
+            }
+
+            if (selectedRombel) {
+                query = query.eq('rombel', selectedRombel)
+            }
+
+            // Apply Pagination
+            const from = (currentPage - 1) * itemsPerPage
+            const to = from + itemsPerPage - 1
+
+            const { data, error, count } = await query.range(from, to)
+
             if (error) throw error
+
             setStudents(data || [])
+            setTotalStudents(count || 0)
+
         } catch (error) {
             console.error('Error fetching students:', error)
         } finally {
@@ -50,52 +122,33 @@ export default function AdminDashboard() {
         }
     }
 
-    // Get unique Rombel options from Real Data
-    const rombelOptions = useMemo(() => {
-        const rombels = students.map(s => s.rombel).filter(Boolean) // Filter out null/undefined
-        return Array.from(new Set(rombels)).sort()
-    }, [students])
+    const totalPages = Math.ceil(totalStudents / itemsPerPage)
 
-    // Filter Logic
-    const filteredStudents = useMemo(() => {
-        return students.filter(student => {
-            const matchesSearch = (student.nama || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (student.nipd || '').includes(searchTerm) ||
-                (student.nisn || '').includes(searchTerm)
-            const matchesRombel = selectedRombel ? student.rombel === selectedRombel : true
+    const handleExport = async () => {
+        setLoading(true)
+        try {
+            // Fetch ALL data matching filters for export
+            let query = supabase.from('students').select('*')
+            if (debouncedSearchTerm) query = query.or(`nama.ilike.%${debouncedSearchTerm}%,nisn.ilike.%${debouncedSearchTerm}%,nipd.ilike.%${debouncedSearchTerm}%`)
+            if (selectedRombel) query = query.eq('rombel', selectedRombel)
 
-            return matchesSearch && matchesRombel
-        })
-    }, [searchTerm, selectedRombel, students])
+            const { data, error } = await query
 
-    // Reset pagination when filter changes
-    useEffect(() => {
-        setCurrentPage(1)
-    }, [searchTerm, selectedRombel])
+            if (error) throw error
+            if (!data) return
 
-    const totalPages = Math.ceil(filteredStudents.length / itemsPerPage)
+            const cleanData = data.map(({ is_verified, verified_at, created_at, password, ...rest }) => rest)
 
-    const paginatedStudents = useMemo(() => {
-        const start = (currentPage - 1) * itemsPerPage
-        return filteredStudents.slice(start, start + itemsPerPage)
-    }, [currentPage, filteredStudents])
+            const ws = XLSX.utils.json_to_sheet(cleanData)
+            const wb = XLSX.utils.book_new()
+            XLSX.utils.book_append_sheet(wb, ws, "Data Murid")
+            XLSX.writeFile(wb, `Data_Murid_SMAN1Pati_${new Date().toISOString().slice(0, 10)}.xlsx`)
 
-    // Stats Calculation based on Real Filtered Data
-    const stats = useMemo(() => {
-        return {
-            total: filteredStudents.length,
-            verified: filteredStudents.filter(s => s.is_verified).length,
-            pending: filteredStudents.filter(s => !s.is_verified).length
+        } catch (error: any) {
+            showNotification('error', 'Gagal export data: ' + error.message)
+        } finally {
+            setLoading(false)
         }
-    }, [filteredStudents])
-
-    // Export Handler
-    const handleExport = () => {
-        const dataToExport = filteredStudents.length > 0 ? filteredStudents : students
-        const ws = XLSX.utils.json_to_sheet(dataToExport)
-        const wb = XLSX.utils.book_new()
-        XLSX.utils.book_append_sheet(wb, ws, "Data Murid")
-        XLSX.writeFile(wb, `Data_Murid_SMAN1Pati_${new Date().toISOString().slice(0, 10)}.xlsx`)
     }
 
     const [resetModal, setResetModal] = useState({
@@ -162,6 +215,63 @@ export default function AdminDashboard() {
         }
     }
 
+    // Custom Confirm Modal State
+    const [confirmModal, setConfirmModal] = useState({
+        show: false,
+        title: '',
+        message: '',
+        onConfirm: () => { }
+    })
+
+    const showConfirm = (title: string, message: string, onConfirm: () => void) => {
+        setConfirmModal({
+            show: true,
+            title,
+            message,
+            onConfirm: () => {
+                setConfirmModal(prev => ({ ...prev, show: false }))
+                onConfirm()
+            }
+        })
+    }
+
+    const handleResetVerification = async (student: any) => {
+        showConfirm(
+            'Konfirmasi Pembatalan',
+            `Apakah Anda yakin ingin membatalkan verifikasi untuk siswa ${student.nama}? Siswa akan bisa mengubah datanya kembali.`,
+            async () => {
+                try {
+                    // Get Access Token
+                    const { data: { session } } = await supabase.auth.getSession()
+                    if (!session?.access_token) {
+                        showNotification('error', 'Sesi login tidak valid. Silakan login ulang.')
+                        return
+                    }
+
+                    const response = await fetch('/api/admin/reset-verification', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${session.access_token}`
+                        },
+                        body: JSON.stringify({ studentId: student.id })
+                    })
+
+                    if (!response.ok) {
+                        const result = await response.json()
+                        throw new Error(result.error || 'Gagal mereset verifikasi')
+                    }
+
+                    showNotification('success', `Status verifikasi ${student.nama} berhasil direset!`)
+                    fetchStudents() // Refresh data
+                    fetchStats() // Refresh stats
+                } catch (error: any) {
+                    showNotification('error', error.message)
+                }
+            }
+        )
+    }
+
     return (
         <div className="space-y-8">
 
@@ -225,7 +335,7 @@ export default function AdminDashboard() {
                     <p className="text-slate-400 text-sm font-medium mb-1">Total Murid</p>
                     <p className="text-3xl font-bold text-white">{stats.total}</p>
                     <div className="text-xs text-slate-500 mt-2">
-                        {selectedRombel ? `Dalam kelas ${selectedRombel}` : 'Semua kelas'}
+                        Data terdaftar di sistem
                     </div>
                 </div>
                 <div className="glass-panel p-6">
@@ -250,9 +360,10 @@ export default function AdminDashboard() {
                 </div>
             </div>
 
-            {/* Main Data Table */}
+            {/* Main Data Table & Mobile Cards */}
             <div className="glass-panel overflow-hidden border border-white/10">
-                <div className="overflow-x-auto pb-2 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-700/50 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-600/80 transition-colors">
+                {/* Desktop View (Table) */}
+                <div className="hidden md:block overflow-x-auto pb-2 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-700/50 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-600/80 transition-colors">
                     <table className="w-full text-sm text-left">
                         <thead className="text-xs text-slate-400 uppercase bg-black/20 border-b border-white/5">
                             <tr>
@@ -276,8 +387,8 @@ export default function AdminDashboard() {
                                         </div>
                                     </td>
                                 </tr>
-                            ) : paginatedStudents.length > 0 ? (
-                                paginatedStudents.map((student, index) => (
+                            ) : students.length > 0 ? (
+                                students.map((student, index) => (
                                     <tr key={student.id} className="hover:bg-white/5 transition-colors">
                                         <td className="px-6 py-4">{(currentPage - 1) * itemsPerPage + index + 1}</td>
                                         <td className="px-6 py-4 font-medium text-white">{student.nama}</td>
@@ -295,9 +406,9 @@ export default function AdminDashboard() {
                                         </td>
                                         <td className="px-6 py-4 text-center">
                                             <div className="flex items-center justify-center gap-2">
-                                                <button className="text-blue-400 hover:text-blue-300 transition-colors p-1" title="Edit Data">
+                                                <Link href={`/admin/students/${student.id}`} className="text-blue-400 hover:text-blue-300 transition-colors p-1" title="Edit Data">
                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                                </button>
+                                                </Link>
                                                 <button
                                                     onClick={() => openResetModal(student)}
                                                     className="text-orange-400 hover:text-orange-300 transition-colors p-1"
@@ -305,6 +416,15 @@ export default function AdminDashboard() {
                                                 >
                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
                                                 </button>
+                                                {student.is_verified && (
+                                                    <button
+                                                        onClick={() => handleResetVerification(student)}
+                                                        className="text-red-400 hover:text-red-300 transition-colors p-1"
+                                                        title="Batal Verifikasi"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
@@ -320,11 +440,89 @@ export default function AdminDashboard() {
                     </table>
                 </div>
 
+                {/* Mobile View (Cards) */}
+                <div className="md:hidden space-y-4 p-4">
+                    {loading ? (
+                        <div className="text-center py-12 text-slate-500">
+                            <div className="flex justify-center items-center gap-2">
+                                <svg className="w-5 h-5 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                Sedang memuat data...
+                            </div>
+                        </div>
+                    ) : students.length > 0 ? (
+                        students.map((student) => (
+                            <div key={student.id} className="bg-slate-800/50 rounded-xl p-4 border border-white/5 space-y-4">
+                                <div className="flex justify-between items-start">
+                                    <div className="space-y-1">
+                                        <h3 className="font-bold text-white text-lg">{student.nama}</h3>
+                                        <div className="flex items-center gap-2 text-xs">
+                                            <span className={`px-2 py-0.5 rounded-full border ${student.is_verified
+                                                ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                                                : 'bg-orange-500/10 text-orange-400 border-orange-500/20'
+                                                }`}>
+                                                {student.is_verified ? 'Verified' : 'Pending'}
+                                            </span>
+                                            <span className="text-slate-500">|</span>
+                                            <span className="text-slate-400">{student.rombel || '-'}</span>
+                                        </div>
+                                    </div>
+                                    <div className="w-8 h-8 rounded-full bg-slate-700/50 flex items-center justify-center text-xs font-bold text-slate-300">
+                                        {student.jk}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3 text-sm border-t border-white/5 pt-3">
+                                    <div>
+                                        <p className="text-slate-500 text-xs uppercase tracking-wider mb-0.5">NISN</p>
+                                        <p className="font-mono text-slate-300">{student.nisn}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-slate-500 text-xs uppercase tracking-wider mb-0.5">NIPD</p>
+                                        <p className="font-mono text-slate-300">{student.nipd || '-'}</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-2 pt-2">
+                                    <Link
+                                        href={`/admin/students/${student.id}`}
+                                        className="flex-1 py-2.5 px-4 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 rounded-lg text-blue-400 text-sm font-medium flex items-center justify-center gap-2 transition-colors"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                        Edit
+                                    </Link>
+                                    <button
+                                        onClick={() => openResetModal(student)}
+                                        className="flex-1 py-2.5 px-4 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 rounded-lg text-orange-400 text-sm font-medium flex items-center justify-center gap-2 transition-colors"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+                                        Reset Pass
+                                    </button>
+                                </div>
+                                {student.is_verified && (
+                                    <div className="pt-2">
+                                        <button
+                                            onClick={() => handleResetVerification(student)}
+                                            className="w-full py-2.5 px-4 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-lg text-red-400 text-sm font-medium flex items-center justify-center gap-2 transition-colors"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                            Batal Verifikasi
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        ))
+                    ) : (
+                        <div className="text-center py-12 text-slate-500">
+                            Data tidak ditemukan.
+                        </div>
+                    )}
+                </div>
+
                 {/* Pagination Controls */}
-                {!loading && filteredStudents.length > 0 && (
+                {!loading && students.length > 0 && (
                     <div className="p-4 border-t border-white/5 bg-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
                         <div className="text-slate-400">
-                            Menampilkan <span className="font-semibold text-white">{(currentPage - 1) * itemsPerPage + 1}</span> - <span className="font-semibold text-white">{Math.min(currentPage * itemsPerPage, filteredStudents.length)}</span> dari <span className="font-semibold text-white">{filteredStudents.length}</span> data
+                            Menampilkan <span className="font-semibold text-white">{(currentPage - 1) * itemsPerPage + 1}</span> - <span className="font-semibold text-white">{Math.min(currentPage * itemsPerPage, totalStudents)}</span> dari <span className="font-semibold text-white">{totalStudents}</span> data
                         </div>
 
                         <div className="flex items-center gap-2">
@@ -336,9 +534,9 @@ export default function AdminDashboard() {
                                 <svg className="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
                             </button>
 
-                            {/* Simple Page Indicator - can be expanded to numbers if needed */}
+                            {/* Simple Page Indicator */}
                             <div className="px-4 py-2 rounded-lg bg-slate-900 border border-white/10 text-slate-300 font-medium">
-                                Halaman {currentPage} / {totalPages}
+                                Halaman {currentPage} / {totalPages || 1}
                             </div>
 
                             <button
@@ -472,6 +670,36 @@ export default function AdminDashboard() {
                     </div>
                 )
             }
+            {/* Confirmation Modal */}
+            {confirmModal.show && (
+                <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-enter">
+                    <div className="glass-panel w-full max-w-sm p-6 shadow-2xl transform scale-100 transition-all relative border border-white/10">
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-16 h-16 rounded-full bg-orange-500/10 text-orange-400 flex items-center justify-center mb-4 border border-orange-500/20">
+                                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                            </div>
+                            <h3 className="text-xl font-bold text-white mb-2">{confirmModal.title}</h3>
+                            <p className="text-slate-300 text-sm mb-6 leading-relaxed">
+                                {confirmModal.message}
+                            </p>
+                            <div className="flex gap-3 w-full">
+                                <button
+                                    onClick={() => setConfirmModal(prev => ({ ...prev, show: false }))}
+                                    className="flex-1 py-2.5 rounded-xl font-semibold text-slate-300 hover:text-white hover:bg-white/10 transition-all text-sm border border-transparent hover:border-white/10"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    onClick={() => confirmModal.onConfirm()}
+                                    className="flex-1 py-2.5 rounded-xl font-bold text-white text-sm transition-all shadow-lg bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 shadow-orange-500/20"
+                                >
+                                    Ya, Lanjutkan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

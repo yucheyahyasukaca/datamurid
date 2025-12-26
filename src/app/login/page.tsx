@@ -95,6 +95,30 @@ export default function LoginPage() {
     const inputClass = "w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all"
     const labelClass = "block text-slate-400 text-xs uppercase tracking-wider font-semibold mb-2"
 
+    // Rotating loading messages
+    const [loadingMessage, setLoadingMessage] = useState('Menghubungkan ke server...')
+
+    // Cyclical messages effect
+    React.useEffect(() => {
+        if (!loading) return;
+
+        const messages = [
+            'Menghubungkan ke server...',
+            'Memverifikasi kredensial...',
+            'Menyiapkan dashboard Anda...',
+            'Sedang memuat data terbaru...',
+            'Hampir selesai...'
+        ];
+
+        let i = 0;
+        const interval = setInterval(() => {
+            i = (i + 1) % messages.length;
+            setLoadingMessage(messages[i]);
+        }, 2000); // Change message every 2 seconds
+
+        return () => clearInterval(interval);
+    }, [loading]);
+
     return (
         <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-[#0a0a0a]">
             {/* Dynamic Background */}
@@ -102,6 +126,48 @@ export default function LoginPage() {
                 <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] animate-blob" />
                 <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-orange-600/20 rounded-full blur-[120px] animate-blob animation-delay-2000" />
             </div>
+
+            {/* PREMIUIM FULL SCREEN LOADER */}
+            {loading && (
+                <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="relative">
+                        {/* Outer Glow */}
+                        <div className="absolute inset-0 bg-blue-500 blur-2xl opacity-20 animate-pulse rounded-full"></div>
+
+                        {/* Main Spinner Container */}
+                        <div className="relative bg-slate-900/90 border border-white/10 p-8 rounded-3xl shadow-2xl flex flex-col items-center max-w-sm w-full mx-4">
+
+                            {/* Animated Logo/Icon */}
+                            <div className="relative w-20 h-20 mb-6">
+                                <div className="absolute inset-0 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
+                                <div className="absolute inset-2 border-4 border-orange-500/30 border-b-orange-500 rounded-full animate-spin animation-delay-500 reverse"></div>
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <Image
+                                        src="/sman1pati.png"
+                                        alt="Loading..."
+                                        width={40}
+                                        height={40}
+                                        className="animate-pulse"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Title */}
+                            <h3 className="text-xl font-bold text-white mb-2">Mohon Tunggu</h3>
+
+                            {/* Dynamic Message */}
+                            <p className="text-slate-400 text-center text-sm min-h-[20px] animate-pulse">
+                                {loadingMessage}
+                            </p>
+
+                            {/* Progress Indicator (Fake Bar) */}
+                            <div className="w-full h-1 bg-slate-800 rounded-full mt-6 overflow-hidden">
+                                <div className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-orange-500 w-1/2 animate-[shimmer_2s_infinite]"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="w-full max-w-md relative z-10 animate-enter">
                 {/* School Logo/Brand */}
@@ -190,14 +256,7 @@ export default function LoginPage() {
                             disabled={loading}
                             className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl font-bold text-white text-lg shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                         >
-                            {loading ? (
-                                <>
-                                    <svg className="w-6 h-6 animate-spin text-white/50 mr-2" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                    Memproses Masuk...
-                                </>
-                            ) : (
-                                'Masuk ke Portal'
-                            )}
+                            Masuk ke Portal
                         </button>
                     </form>
                 </div>

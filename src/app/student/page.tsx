@@ -31,7 +31,7 @@ export default function StudentDashboard() {
         const storedNisn = localStorage.getItem('student_nisn')
 
         // Check if user has seen warning
-        const hasSeenWarning = localStorage.getItem('security_warning_seen_v1')
+        const hasSeenWarning = localStorage.getItem('security_warning_seen_v2')
         if (!hasSeenWarning) {
             // Show with a slight delay for better UX
             setTimeout(() => setShowSecurityWarning(true), 1500)
@@ -46,7 +46,7 @@ export default function StudentDashboard() {
     }, [])
 
     const handleCloseSecurityWarning = () => {
-        localStorage.setItem('security_warning_seen_v1', 'true')
+        localStorage.setItem('security_warning_seen_v2', 'true')
         setShowSecurityWarning(false)
     }
 
@@ -149,18 +149,22 @@ export default function StudentDashboard() {
         try {
             if (!studentData) return
 
-            const { error } = await supabase
-                .from('students')
-                .update({ is_verified: true, verified_at: new Date().toISOString() })
-                .eq('id', studentData.id)
+            // Use Server-side API to bypass RLS
+            const response = await fetch('/api/students/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: studentData.id })
+            })
 
-            if (error) throw error
+            const result = await response.json()
+
+            if (!response.ok) throw new Error(result.error || 'Gagal verifikasi')
 
             setIsVerified(true)
             setShowModal(false)
-            alert('Data berhasil dikonfirmasi!')
+            showNotification('success', 'Data berhasil dikonfirmasi!')
         } catch (error: any) {
-            alert('Gagal konfirmasi: ' + error.message)
+            showNotification('error', 'Gagal konfirmasi: ' + error.message)
         }
     }
 
@@ -239,6 +243,103 @@ export default function StudentDashboard() {
                 </div>
             </div>
 
+            {/* Progress Tracker Card */}
+            <div className="glass-panel p-6 md:p-8 rounded-2xl border border-white/10 relative overflow-hidden">
+                <div className="flex flex-col md:flex-row gap-8 items-center">
+                    {/* Progress Circle & Text */}
+                    <div className="flex-1 w-full">
+                        <div className="flex justify-between items-center mb-4">
+                            <div>
+                                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                                    <span className="w-1.5 h-6 bg-gradient-to-b from-orange-400 to-red-500 rounded-full"></span>
+                                    Kelengkapan Data
+                                </h3>
+                                <p className="text-slate-400 text-sm mt-1">Selesaikan misi untuk melengkapi profilmu!</p>
+                            </div>
+                            <div className="text-right">
+                                <span className={`text-3xl font-black ${(isVerified && studentData.no_hp) ? 'text-green-400' : 'text-orange-400'
+                                    }`}>
+                                    {isVerified && studentData.no_hp ? '100%' : (isVerified || studentData.no_hp ? '50%' : '0%')}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="w-full h-4 bg-slate-800 rounded-full overflow-hidden relative border border-white/5">
+                            <div
+                                className={`h-full rounded-full transition-all duration-1000 ease-out relative ${(isVerified && studentData.no_hp)
+                                    ? 'bg-gradient-to-r from-green-500 to-emerald-400 w-full'
+                                    : (isVerified || studentData.no_hp ? 'bg-gradient-to-r from-orange-500 to-amber-400 w-1/2' : 'w-0')
+                                    }`}
+                            >
+                                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/simple-dashed.png')] opacity-30 animate-pulse"></div>
+                                <div className="absolute top-0 right-0 bottom-0 w-1 bg-white/50 blur-[2px]"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Task List */}
+                    <div className="w-full md:w-1/2 space-y-3">
+                        {/* Task 1: Verification */}
+                        <div className={`flex items-center gap-4 p-3 rounded-xl border transition-all ${isVerified
+                            ? 'bg-green-500/10 border-green-500/20'
+                            : 'bg-slate-800/50 border-white/5 hover:border-orange-500/30'
+                            }`}>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isVerified ? 'bg-green-500 text-white' : 'bg-slate-700 text-slate-400'
+                                }`}>
+                                {isVerified ? (
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                                ) : (
+                                    <span className="font-bold text-xs">1</span>
+                                )}
+                            </div>
+                            <div className="flex-1">
+                                <h4 className={`text-sm font-bold ${isVerified ? 'text-green-400' : 'text-white'}`}>
+                                    Validasi Data Diri
+                                </h4>
+                                {!isVerified && <p className="text-xs text-slate-400">Pastikan data di bawah sesuai.</p>}
+                            </div>
+                            {!isVerified && (
+                                <button
+                                    onClick={() => document.getElementById('validation-section')?.scrollIntoView({ behavior: 'smooth' })}
+                                    className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-semibold text-white transition-colors"
+                                >
+                                    Cek
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Task 2: Contact Info */}
+                        <div className={`flex items-center gap-4 p-3 rounded-xl border transition-all ${studentData.no_hp
+                            ? 'bg-green-500/10 border-green-500/20'
+                            : 'bg-slate-800/50 border-white/5 hover:border-orange-500/30'
+                            }`}>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${studentData.no_hp ? 'bg-green-500 text-white' : 'bg-slate-700 text-slate-400'
+                                }`}>
+                                {studentData.no_hp ? (
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                                ) : (
+                                    <span className="font-bold text-xs">2</span>
+                                )}
+                            </div>
+                            <div className="flex-1">
+                                <h4 className={`text-sm font-bold ${studentData.no_hp ? 'text-green-400' : 'text-white'}`}>
+                                    Update Nomor HP & Email
+                                </h4>
+                                {!studentData.no_hp && <p className="text-xs text-slate-400">Agar info sekolah tersampaikan.</p>}
+                            </div>
+                            {!studentData.no_hp && (
+                                <button
+                                    onClick={() => router.push('/student/contact')}
+                                    className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 rounded-lg text-xs font-semibold text-white transition-colors shadow-lg shadow-orange-500/20"
+                                >
+                                    Isi Sekarang
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
             {/* Main Data Panel */}
             <div className="glass-panel overflow-hidden border border-white/10 shadow-2xl">
                 <div className="p-6 md:p-8 border-b border-white/5 bg-white/5 flex flex-row justify-between items-center gap-3 relative overflow-hidden">
@@ -286,7 +387,7 @@ export default function StudentDashboard() {
                 </div>
 
                 {/* Validation Action */}
-                <div className="p-6 md:p-8 bg-black/20 border-t border-white/5 flex flex-col items-center justify-center gap-6 text-center">
+                <div id="validation-section" className="p-6 md:p-8 bg-black/20 border-t border-white/5 flex flex-col items-center justify-center gap-6 text-center">
                     {isVerified ? (
                         <div className="flex flex-col items-center gap-3 animate-enter">
                             <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center text-green-400 shadow-lg shadow-green-500/20 mb-2">

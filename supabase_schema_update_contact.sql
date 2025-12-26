@@ -1,0 +1,6 @@
+-- Run this in your Supabase SQL Editor
+
+ALTER TABLE students 
+ADD COLUMN IF NOT EXISTS no_hp VARCHAR(20),
+ADD COLUMN IF NOT EXISTS email VARCHAR(100),
+ADD COLUMN IF NOT EXISTS no_hp_ortu VARCHAR(20);

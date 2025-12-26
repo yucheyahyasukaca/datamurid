@@ -30,6 +30,8 @@ export default function StudentLayout({
                 .from('students')
                 .select('nama')
                 .eq('nisn', nisn)
+                .order('is_verified', { ascending: false })
+                .limit(1)
                 .single()
 
             if (data && data.nama) {
@@ -84,6 +86,12 @@ export default function StudentLayout({
                         : 'text-slate-400 hover:bg-white/5 hover:text-white'
                         }`}>
                         Data Nilai
+                    </Link>
+                    <Link href="/student/contact" className={`block px-4 py-3 rounded-xl font-medium transition-all ${pathname === '/student/contact'
+                        ? 'bg-orange-600/10 text-orange-400 border border-orange-500/20'
+                        : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                        }`}>
+                        Kontak Saya
                     </Link>
                     <div className="pt-4 mt-4 border-t border-white/5">
                         <div className="pt-4 mt-4 border-t border-white/5">
