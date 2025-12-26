@@ -46,7 +46,8 @@ export default function LoginPage() {
                 // Set Admin Session Cookie for Middleware
                 document.cookie = "admin_session=true; path=/; max-age=86400"
 
-                router.push('/admin')
+                // Use window.location.href for full page reload to ensure cookies are set
+                window.location.href = '/admin'
 
             } else {
                 // Student Login via Secure API
@@ -74,7 +75,8 @@ export default function LoginPage() {
                 // Clear admin cookie
                 document.cookie = "admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;"
 
-                router.push('/student')
+                // Use window.location.href for full page reload to ensure cookies are set
+                window.location.href = '/student'
             }
 
         } catch (err: any) {
