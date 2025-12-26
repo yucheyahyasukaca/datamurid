@@ -1,7 +1,7 @@
 export const runtime = 'edge'
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/utils/supabase-admin'
-import bcrypt from 'bcryptjs'
+import { compare } from 'bcrypt-ts'
 
 export async function POST(request: Request) {
     try {
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
 
         if (student.password) {
             // Check against hashed password
-            isMatch = await bcrypt.compare(password, student.password)
+            isMatch = await compare(password, student.password)
         } else {
             // Check against DOB (Default password logic)
             const cleanInput = password.replace(/\D/g, '')

@@ -3,11 +3,10 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'Pusat Layanan Data Terpadu & Verifikasi Siswa Digital SMA Negeri 1 Pati',
+
   description: 'Portal Resmi Pusat Layanan Data Terpadu & Verifikasi Siswa Digital SMA Negeri 1 Pati',
   icons: {
     icon: '/favicon.png',
-    shortcut: '/favicon.png',
-    apple: '/favicon.png',
   },
 }
 

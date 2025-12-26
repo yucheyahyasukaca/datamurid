@@ -1,7 +1,7 @@
 export const runtime = 'edge'
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/utils/supabase-admin'
-import bcrypt from 'bcryptjs'
+import { genSalt, hash } from 'bcrypt-ts'
 import { cookies } from 'next/headers'
 
 export async function POST(request: Request) {
@@ -21,8 +21,8 @@ export async function POST(request: Request) {
         }
 
         // 2. Hash new password
-        const salt = await bcrypt.genSalt(10)
-        const hashedPassword = await bcrypt.hash(newPassword, salt)
+        const salt = await genSalt(10)
+        const hashedPassword = await hash(newPassword, salt)
 
         // 3. Update student
         const { error: updateError } = await supabaseAdmin
