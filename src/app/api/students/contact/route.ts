@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/utils/supabase-admin'
 
+export const runtime = 'edge'
+
 export async function POST(req: NextRequest) {
     try {
         // Basic Session Check
