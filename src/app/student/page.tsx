@@ -26,6 +26,12 @@ export default function StudentDashboard() {
         onClose: () => { }
     })
 
+    // Change Request State
+    const [changeRequest, setChangeRequest] = useState<any>(null)
+    const [showRequestModal, setShowRequestModal] = useState(false)
+    const [requestReason, setRequestReason] = useState('')
+    const [requestLoading, setRequestLoading] = useState(false)
+
     useEffect(() => {
         // ... (existing auth check) ...
         const storedNisn = localStorage.getItem('student_nisn')
@@ -66,6 +72,17 @@ export default function StudentDashboard() {
             if (result.data) {
                 setStudentData(result.data)
                 setIsVerified(result.data.is_verified)
+
+                // Fetch Change Request Status
+                try {
+                    const reqStatusRes = await fetch(`/api/requests/student/status?nisn=${nisn}`)
+                    const reqStatus = await reqStatusRes.json()
+                    if (reqStatus.data) {
+                        setChangeRequest(reqStatus.data)
+                    }
+                } catch (e) {
+                    console.error("Failed to fetch request status", e)
+                }
             }
         } catch (error) {
             console.error('Error fetching student data:', error)
@@ -165,6 +182,34 @@ export default function StudentDashboard() {
             showNotification('success', 'Data berhasil dikonfirmasi!')
         } catch (error: any) {
             showNotification('error', 'Gagal konfirmasi: ' + error.message)
+        }
+    }
+
+    const handleRequestChange = async () => {
+        if (!requestReason.trim()) {
+            showNotification('error', 'Mohon isi alasan perbaikan data.')
+            return
+        }
+        setRequestLoading(true)
+        try {
+            const res = await fetch('/api/requests/student/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    nisn: studentData.nisn,
+                    reason: requestReason
+                })
+            })
+            const json = await res.json()
+            if (!res.ok) throw new Error(json.error)
+
+            setChangeRequest(json.data)
+            setShowRequestModal(false)
+            showNotification('success', 'Permintaan terkirim! Menunggu persetujuan admin.')
+        } catch (error: any) {
+            showNotification('error', error.message)
+        } finally {
+            setRequestLoading(false)
         }
     }
 
@@ -386,41 +431,116 @@ export default function StudentDashboard() {
                         ))}
                 </div>
 
-                {/* Validation Action */}
-                <div id="validation-section" className="p-6 md:p-8 bg-black/20 border-t border-white/5 flex flex-col items-center justify-center gap-6 text-center">
-                    {isVerified ? (
-                        <div className="flex flex-col items-center gap-3 animate-enter">
-                            <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center text-green-400 shadow-lg shadow-green-500/20 mb-2">
-                                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                            </div>
-                            <h3 className="text-xl font-bold text-white">Terima Kasih!</h3>
-                            <p className="text-slate-400 max-w-md text-sm md:text-base">
-                                Anda telah menyatakan bahwa data ini benar pada {new Date().toLocaleDateString('id-ID')}.
-                            </p>
-                        </div>
-                    ) : (
-                        <div className="w-full max-w-lg">
-                            <div className="bg-orange-500/10 border border-orange-500/20 p-6 rounded-2xl mb-8 backdrop-blur-sm relative overflow-hidden group hover:border-orange-500/40 transition-colors">
-                                <div className="absolute top-0 left-0 w-1 h-full bg-orange-500" />
-                                <strong className="block mb-2 text-lg text-orange-400">Penting:</strong>
-                                <p className="text-orange-200/80 text-sm leading-relaxed">
-                                    Pastikan data sudah sesuai dengan dokumen asli. <br />
-                                    Jika ada kesalahan, segera hubungi tim dapodik di ruang kurikulum.
-                                </p>
-                            </div>
+            </div>
 
+            {/* Request Change Section / Status Banner */}
+            <div className="glass-panel p-6 md:p-8 rounded-2xl border border-white/10 relative overflow-hidden mt-6">
+                <h3 className="text-lg font-bold text-white mb-4">Status Data</h3>
+                {changeRequest && changeRequest.status === 'REQUESTED' && (
+                    <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl text-blue-200">
+                        <strong className="block mb-1 text-blue-400">Permintaan Perbaikan Terkirim</strong>
+                        <p className="text-sm">Admin sedang meninjau permintaan Anda. Mohon tunggu persetujuan untuk mengedit data.</p>
+                    </div>
+                )}
+                {changeRequest && changeRequest.status === 'EDITING' && (
+                    <div className="bg-green-500/10 border border-green-500/20 p-4 rounded-xl text-green-200 flex justify-between items-center">
+                        <div>
+                            <strong className="block mb-1 text-green-400">Permintaan Disetujui</strong>
+                            <p className="text-sm">Silakan edit data Anda sekarang.</p>
+                        </div>
+                        <button
+                            onClick={() => router.push('/student/edit')}
+                            className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg shadow-lg"
+                        >
+                            Edit Data
+                        </button>
+                    </div>
+                )}
+                {changeRequest && changeRequest.status === 'REVIEW' && (
+                    <div className="bg-purple-500/10 border border-purple-500/20 p-4 rounded-xl text-purple-200">
+                        <strong className="block mb-1 text-purple-400">Menunggu Validasi</strong>
+                        <p className="text-sm">Data perubahan telah disimpan. Admin akan memvalidasi data Anda segera.</p>
+                    </div>
+                )}
+                {changeRequest && changeRequest.status === 'REJECTED' && (
+                    <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl text-red-200 mb-4">
+                        <strong className="block mb-1 text-red-400">Permintaan Ditolak</strong>
+                        <p className="text-sm">Catatan Admin: {changeRequest.admin_notes || 'Tidak ada catatan.'}</p>
+                        <button
+                            onClick={() => setChangeRequest(null)}
+                            className="mt-2 text-xs underline hover:text-white"
+                        >
+                            Tutup
+                        </button>
+                    </div>
+                )}
+
+                {/* Main Action Buttons if no active request logic blocking */}
+                {(!changeRequest || changeRequest.status === 'APPROVED' || changeRequest.status === 'REJECTED') && (
+                    <div id="validation-section" className="mt-6 flex flex-col md:flex-row gap-4 justify-center">
+                        {!isVerified ? (
+                            <>
+                                <button
+                                    onClick={handleValidateClick}
+                                    className="flex-1 px-6 py-4 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl font-bold text-white shadow-lg shadow-orange-500/20 hover:-translate-y-1 transition text-center"
+                                >
+                                    Saya Konfirmasi Data Benar
+                                </button>
+                                <button
+                                    onClick={() => setShowRequestModal(true)}
+                                    className="flex-1 px-6 py-4 bg-slate-800 border border-white/10 hover:bg-slate-700 rounded-xl font-bold text-slate-300 hover:text-white transition text-center"
+                                >
+                                    Saya Perlu Perbaikan Data
+                                </button>
+                            </>
+                        ) : (
+                            <div className="w-full text-center p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
+                                <p className="text-green-400 font-bold">Data Terverifikasi</p>
+                                <p className="text-slate-400 text-xs mt-1">Jika ada perubahan mendesak, silakan hubungi admin sekolah.</p>
+                                <button
+                                    onClick={() => setShowRequestModal(true)}
+                                    className="mt-3 px-4 py-2 text-sm bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 transition"
+                                >
+                                    Ajukan Perubahan (Khusus)
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Request Modal */}
+            {showRequestModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-enter">
+                    <div className="glass-panel w-full max-w-md p-6 shadow-2xl relative">
+                        <h3 className="text-xl font-bold text-white mb-4">Ajukan Perbaikan Data</h3>
+                        <p className="text-slate-400 text-sm mb-4">
+                            Jelaskan bagian mana yang salah dan perlu diperbaiki. Admin akan membuka akses edit setelah disetujui.
+                        </p>
+                        <textarea
+                            className="w-full bg-slate-900/50 border border-white/10 rounded-lg p-3 text-white text-sm focus:outline-none focus:border-blue-500 min-h-[100px]"
+                            placeholder="Contoh: Nama ibu salah ejaan, Tanggal lahir tidak sesuai akta..."
+                            value={requestReason}
+                            onChange={(e) => setRequestReason(e.target.value)}
+                        />
+                        <div className="flex gap-3 mt-6">
                             <button
-                                onClick={handleValidateClick}
-                                className="group relative w-full flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl font-bold text-white text-lg shadow-2xl shadow-orange-500/20 hover:shadow-orange-500/40 hover:-translate-y-1 active:scale-[0.98] transition-all duration-300"
+                                onClick={() => setShowRequestModal(false)}
+                                className="flex-1 px-4 py-2 rounded-lg border border-white/10 text-slate-300 hover:bg-white/5"
                             >
-                                <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                <svg className="w-6 h-6 text-white/90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                <span>Saya Konfirmasi Data Benar</span>
+                                Batal
+                            </button>
+                            <button
+                                onClick={handleRequestChange}
+                                disabled={requestLoading}
+                                className="flex-1 px-4 py-2 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-500 shadow-lg"
+                            >
+                                {requestLoading ? 'Mengirim...' : 'Kirim Permintaan'}
                             </button>
                         </div>
-                    )}
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Custom Confirmation Modal (Validation) */}
             {

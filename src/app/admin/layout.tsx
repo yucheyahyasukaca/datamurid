@@ -69,6 +69,12 @@ export default function AdminLayout({
                         }`}>
                         Riwayat Perubahan
                     </Link>
+                    <Link href="/admin/requests" className={`block px-4 py-3 rounded-xl font-medium transition-all ${pathname.startsWith('/admin/requests')
+                        ? 'bg-orange-600/10 text-orange-400 border border-orange-500/20'
+                        : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                        }`}>
+                        Permintaan Perubahan
+                    </Link>
                     <div className="pt-4 mt-4 border-t border-white/5">
                         <button
                             onClick={() => {
