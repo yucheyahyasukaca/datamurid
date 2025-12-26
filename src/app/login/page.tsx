@@ -79,15 +79,7 @@ export default function LoginPage() {
 
         } catch (err: any) {
             setError(err.message || 'Gagal masuk. Periksa data Anda kembali.')
-        } finally {
-            // Delay setting loading to false slightly if redirecting to prevent button flash
-            // But usually router.push happens fast. We keep it simply false here or let it unmount.
-            if (error) setLoading(false)
-            // If success, we are redirecting, so keeping it true might be better visual,
-            // but react state update on unmounted component warning might occur? 
-            // Next.js handles this well usually.
-            // Let's just set it false if error, otherwise keep it spinning until navigation changes page.
-            if (!error) setLoading(false) // Set to false if no error, as router.push will handle navigation
+            setLoading(false)
         }
     }
 
