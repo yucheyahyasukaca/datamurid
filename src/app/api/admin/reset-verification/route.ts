@@ -2,6 +2,8 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/utils/supabase-admin'
 
+export const runtime = 'edge'
+
 export async function POST(request: Request) {
     try {
         // 1. Check Authorization Header
