@@ -68,18 +68,25 @@ export default function ContactPage() {
         setSaving(true)
 
         try {
-            if (!studentId) return
+            const nisn = localStorage.getItem('student_nisn')
+            if (!nisn) {
+                router.push('/login')
+                return
+            }
 
-            const { error } = await supabase
-                .from('students')
-                .update({
+            const response = await fetch('/api/students/contact', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    nisn,
                     no_hp: formData.no_hp,
                     email: formData.email,
                     no_hp_ortu: formData.no_hp_ortu
                 })
-                .eq('id', studentId)
+            })
 
-            if (error) throw error
+            const result = await response.json()
+            if (!response.ok) throw new Error(result.error || 'Gagal menyimpan data')
 
             setNotification({
                 show: true,
