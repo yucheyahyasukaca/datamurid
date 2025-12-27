@@ -33,13 +33,15 @@ export default function ChatWidget() {
                     ${showBubble ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-4 scale-95 pointer-events-none'}
                 `}
             >
-                <div className="bg-white/90 backdrop-blur-xl border border-white/50 p-5 rounded-[2rem] rounded-br-[4px] shadow-2xl relative max-w-[280px] md:max-w-[320px]">
-                    {/* Gradient border effect via refined shadow/ring */}
-                    <div className="absolute inset-0 rounded-[2rem] rounded-br-[4px] ring-1 ring-inset ring-white/60"></div>
+                {/* Animated Gradient Border Layer */}
+                <div className="relative p-[3px] rounded-[2rem] rounded-br-[4px] overflow-hidden shadow-2xl max-w-[280px] md:max-w-[320px]">
 
-                    <div className="relative z-10">
-                        <p className="text-sm font-medium leading-relaxed text-slate-600">
-                            Hi! 👋 Aku <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 font-extrabold">AI SMAN 1 Pati</span>.
+                    {/* Spinning Gradient Background for Border */}
+                    <div className="absolute inset-0 bg-[conic-gradient(from_0deg_at_50%_50%,#3b82f6_0%,#a855f7_25%,#ec4899_50%,#a855f7_75%,#3b82f6_100%)] animate-[spin_4s_linear_infinite]"></div>
+
+                    <div className="relative bg-white/80 backdrop-blur-2xl p-5 rounded-[calc(2rem-3px)] rounded-br-[1px]">
+                        <p className="text-sm font-medium leading-relaxed text-slate-700">
+                            Hi! 🤩 Aku <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 font-extrabold">AI SMAN 1 Pati</span>.
                             <br />Butuh bantuan soal sekolah?
                         </p>
 
@@ -52,7 +54,7 @@ export default function ChatWidget() {
                             </Link>
                             <button
                                 onClick={() => { setShowBubble(false); setHasInteracted(true); }}
-                                className="px-3 py-2.5 text-xs font-bold text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+                                className="px-3 py-2.5 text-xs font-bold text-slate-500 hover:text-slate-700 hover:bg-slate-100/50 rounded-xl transition-colors"
                             >
                                 Nanti Saja
                             </button>
