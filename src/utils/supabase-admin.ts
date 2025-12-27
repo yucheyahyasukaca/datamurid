@@ -1,14 +1,12 @@
+
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
-if (!supabaseUrl || !supabaseServiceRoleKey) {
-    throw new Error('Missing Supabase URL or Service Role Key in environment variables.')
-}
-
-// Create a Supabase client with the Service Role Key
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
+// Note: This client has admin privileges. Use with caution.
+// NEVER use this on the client-side (browser).
+export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
     auth: {
         autoRefreshToken: false,
         persistSession: false

@@ -7,9 +7,15 @@ import { type NextRequest, NextResponse } from 'next/server'
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl
 
-    // 1. Protect Admin Routes
-    if (pathname.startsWith('/admin')) {
+    // 1. Protect Admin Routes (Pages & APIs)
+    if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
         const adminSession = request.cookies.get('admin_session')
+
+        // For API routes, return 401 instead of redirect
+        if (!adminSession && pathname.startsWith('/api/')) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
         if (!adminSession) {
             return NextResponse.redirect(new URL('/login', request.url))
         }

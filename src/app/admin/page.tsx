@@ -200,7 +200,8 @@ export default function AdminDashboard() {
 
     const handleResetPassword = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!resetModal.newPassword) return
+        const { studentId, studentName, newPassword } = resetModal
+        if (!newPassword) return
 
         try {
             setResetLoading(true)
@@ -208,16 +209,16 @@ export default function AdminDashboard() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    studentId: resetModal.studentId,
-                    newPassword: resetModal.newPassword
+                    studentId,
+                    newPassword
                 })
             })
 
             const result = await response.json()
             if (!response.ok) throw new Error(result.error || 'Gagal mereset password')
 
-            setResetModal({ ...resetModal, show: false })
-            showNotification('success', `Password untuk ${resetModal.studentName} berhasil direset!`)
+            setResetModal(prev => ({ ...prev, show: false }))
+            showNotification('success', `Password untuk ${studentName} berhasil direset!`)
         } catch (error: any) {
             showNotification('error', error.message)
         } finally {

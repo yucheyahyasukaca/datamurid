@@ -48,6 +48,31 @@ export default function AdminLayout({
                 </div>
 
                 <nav className="p-4 space-y-2 mt-2">
+                    {/* Special AI Menu Item with Dual Light Effects */}
+                    <div className="relative group p-[2px] rounded-xl overflow-hidden mb-6 shadow-[0_0_20px_rgba(168,85,247,0.15)]">
+                        {/* 1. Static Glow Base (Always On) - Enlarged */}
+                        <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 opacity-60 blur-xl transition-opacity duration-300 group-hover:opacity-80"></div>
+
+                        {/* 2. Rotating Glow Beam */}
+                        <div className="absolute inset-0 bg-[conic-gradient(from_0deg_at_50%_50%,#3b82f6_0%,#a855f7_25%,#ec4899_50%,#a855f7_75%,#3b82f6_100%)] animate-[spin_4s_linear_infinite] opacity-60 blur-md"></div>
+
+                        {/* 3. Rotating Sharp Border */}
+                        <div className="absolute inset-0 bg-[conic-gradient(from_0deg_at_50%_50%,#3b82f6_0%,#a855f7_25%,#ec4899_50%,#a855f7_75%,#3b82f6_100%)] animate-[spin_4s_linear_infinite] opacity-100 block"></div>
+
+                        <Link href="/admin/ai" className={`relative flex items-center gap-3 px-4 py-3.5 rounded-[10px] font-medium transition-all duration-300 bg-[#0f172a] hover:bg-slate-900 border border-transparent ${pathname === '/admin/ai'
+                            ? 'text-indigo-400'
+                            : 'text-slate-300 hover:text-white'
+                            }`}>
+                            <div className={`p-2 rounded-lg transition-colors ${pathname === '/admin/ai' ? 'bg-indigo-500 text-white' : 'bg-slate-800 text-slate-400 group-hover:bg-slate-700'}`}>
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                            </div>
+                            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent font-bold">Asisten AI</span>
+                            {pathname === '/admin/ai' && (
+                                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 shadow-[0_0_8px_rgba(99,102,241,0.6)] animate-pulse"></div>
+                            )}
+                        </Link>
+                    </div>
+
                     <p className="px-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Menu Utama</p>
 
                     <Link href="/admin" className={`group flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium transition-all duration-300 ${pathname === '/admin'
@@ -101,6 +126,8 @@ export default function AdminLayout({
                             <div className="ml-auto w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(167,139,250,0.6)]"></div>
                         )}
                     </Link>
+
+
 
                     <div className="pt-6 mt-6 border-t border-white/5">
                         <p className="px-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Akun</p>
