@@ -11,6 +11,14 @@ export default function RequestDetailPage() {
     const [processing, setProcessing] = useState(false)
     const [rejectReason, setRejectReason] = useState('')
     const [showRejectModal, setShowRejectModal] = useState(false)
+    const [confirmationModal, setConfirmationModal] = useState({
+        show: false,
+        title: '',
+        message: '',
+        action: '',
+        confirmText: 'Ya, Lanjutkan',
+        confirmClass: 'bg-blue-600'
+    })
 
     useEffect(() => {
         if (id) fetchRequestDetail()
@@ -32,8 +40,7 @@ export default function RequestDetailPage() {
     }
 
     const handleAction = async (action: string) => {
-        if (!confirm('Apakah Anda yakin?')) return
-
+        // Confirmation is now handled by the UI before calling this
         setProcessing(true)
         try {
             const res = await fetch('/api/requests/admin/action', {
@@ -52,10 +59,33 @@ export default function RequestDetailPage() {
             router.refresh()
             fetchRequestDetail()
             setShowRejectModal(false)
+            setConfirmationModal(prev => ({ ...prev, show: false }))
         } catch (error: any) {
             alert('Error: ' + error.message)
         } finally {
             setProcessing(false)
+        }
+    }
+
+    const promptConfirmation = (action: string) => {
+        if (action === 'VALIDATE') {
+            setConfirmationModal({
+                show: true,
+                title: 'Validasi Perubahan',
+                message: 'Apakah Anda yakin ingin menyetujui dan menerapkan perubahan ini? Data siswa akan diperbarui secara permanen.',
+                action: 'VALIDATE',
+                confirmText: 'Ya, Setujui',
+                confirmClass: 'bg-purple-600 hover:bg-purple-500 shadow-purple-500/20'
+            })
+        } else if (action === 'APPROVE_EDIT') {
+            setConfirmationModal({
+                show: true,
+                title: 'Izinkan Edit',
+                message: 'Apakah Anda yakin ingin mengizinkan siswa mengubah data mereka? Siswa akan dapat mengakses form edit.',
+                action: 'APPROVE_EDIT',
+                confirmText: 'Ya, Izinkan',
+                confirmClass: 'bg-blue-600 hover:bg-blue-500 shadow-blue-500/20'
+            })
         }
     }
 
@@ -152,7 +182,7 @@ export default function RequestDetailPage() {
                             Tolak Perubahan
                         </button>
                         <button
-                            onClick={() => handleAction('VALIDATE')}
+                            onClick={() => promptConfirmation('VALIDATE')}
                             className="flex-1 py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-bold shadow-lg shadow-purple-500/20 transition"
                             disabled={processing}
                         >
@@ -175,7 +205,7 @@ export default function RequestDetailPage() {
                             Tolak
                         </button>
                         <button
-                            onClick={() => handleAction('APPROVE_EDIT')}
+                            onClick={() => promptConfirmation('APPROVE_EDIT')}
                             className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold shadow-lg shadow-blue-500/20 transition"
                             disabled={processing}
                         >
@@ -192,23 +222,50 @@ export default function RequestDetailPage() {
             )}
 
             {showRejectModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-                    <div className="bg-slate-900 border border-white/10 p-6 rounded-xl w-full max-w-sm">
-                        <h3 className="font-bold text-white mb-4">Alasan Penolakan</h3>
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-enter">
+                    <div className="bg-slate-900 border border-white/10 p-6 rounded-xl w-full max-w-sm shadow-2xl">
+                        <h3 className="font-bold text-white mb-4 text-lg">Alasan Penolakan</h3>
                         <textarea
-                            className="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white mb-4"
+                            className="w-full bg-black/50 border border-white/10 rounded-lg p-3 text-white mb-4 focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 outline-none transition"
                             rows={3}
                             placeholder="Contoh: Data sudah sesuai akta..."
                             value={rejectReason}
                             onChange={(e) => setRejectReason(e.target.value)}
                         />
                         <div className="flex gap-3">
-                            <button onClick={() => setShowRejectModal(false)} className="flex-1 py-2 text-slate-400">Batal</button>
+                            <button onClick={() => setShowRejectModal(false)} className="flex-1 py-2 text-slate-400 hover:bg-white/5 rounded-lg transition">Batal</button>
                             <button
                                 onClick={() => handleAction('REJECT')}
-                                className="flex-1 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold"
+                                className="flex-1 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold shadow-lg shadow-red-500/20 transition"
                             >
                                 Tolak
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {confirmationModal.show && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-enter">
+                    <div className="bg-slate-900 border border-white/10 p-6 rounded-xl w-full max-w-sm shadow-2xl">
+                        <h3 className="font-bold text-white mb-2 text-lg">{confirmationModal.title}</h3>
+                        <p className="text-slate-400 mb-6 leading-relaxed">
+                            {confirmationModal.message}
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setConfirmationModal(prev => ({ ...prev, show: false }))}
+                                className="flex-1 py-2.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-medium transition"
+                                disabled={processing}
+                            >
+                                Batal
+                            </button>
+                            <button
+                                onClick={() => handleAction(confirmationModal.action)}
+                                className={`flex-1 py-2.5 text-white rounded-lg font-bold shadow-lg transition ${confirmationModal.confirmClass}`}
+                                disabled={processing}
+                            >
+                                {processing ? 'Memproses...' : confirmationModal.confirmText}
                             </button>
                         </div>
                     </div>
