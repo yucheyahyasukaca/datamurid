@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { SCHOOL_KNOWLEDGE } from '@/lib/school-knowledge'
 
+export const runtime = 'edge'
+
 // Initialize Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
 
