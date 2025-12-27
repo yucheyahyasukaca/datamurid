@@ -27,9 +27,23 @@ export async function POST(req: NextRequest) {
             const user = data.users.find(u => u.email?.toLowerCase() === email.toLowerCase())
 
             if (!user) {
-                return NextResponse.json({ error: `User not found for email: ${email}. Please enter the "User UID" from your Supabase dashboard instead.` }, { status: 404 })
+                // Return 404 is old behavior. Now we create the user!
+                console.log(`User ${email} not found. Creating new user...`)
+                const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+                    email: email,
+                    password: '@sudirman24',
+                    email_confirm: true
+                })
+
+                if (createError) {
+                    throw new Error(`Failed to create user: ${createError.message}`)
+                }
+
+                userId = newUser.user.id
+                // return NextResponse.json({ error: `User not found for email: ${email}. Please enter the "User UID" from your Supabase dashboard instead.` }, { status: 404 })
+            } else {
+                userId = user.id
             }
-            userId = user.id
         }
 
         // UPSERT into profiles to ensure row exists AND is admin
@@ -46,7 +60,10 @@ export async function POST(req: NextRequest) {
 
         if (upsertError) throw upsertError
 
-        return NextResponse.json({ message: `Success! User ${userId} is now an Admin.` })
+        return NextResponse.json({
+            message: `Success! User ${email || userId} is now an Admin.`,
+            note: 'If this was a new user, the default password is: @sudirman24'
+        })
 
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 })

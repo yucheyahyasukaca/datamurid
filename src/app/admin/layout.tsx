@@ -114,6 +114,7 @@ export default function AdminLayout({
                         )}
                     </Link>
 
+
                     <Link href="/admin/requests" className={`group flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium transition-all duration-300 ${pathname.startsWith('/admin/requests')
                         ? 'bg-gradient-to-r from-purple-600/20 to-pink-600/10 text-white border border-purple-500/20 shadow-lg shadow-purple-500/10'
                         : 'text-slate-400 hover:bg-white/5 hover:text-white hover:translate-x-1'
@@ -124,6 +125,19 @@ export default function AdminLayout({
                         <span>Permintaan Perubahan</span>
                         {pathname.startsWith('/admin/requests') && (
                             <div className="ml-auto w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(167,139,250,0.6)]"></div>
+                        )}
+                    </Link>
+
+                    <Link href="/admin/settings" className={`group flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium transition-all duration-300 ${pathname.startsWith('/admin/settings')
+                        ? 'bg-gradient-to-r from-slate-600/20 to-zinc-600/10 text-white border border-slate-500/20 shadow-lg shadow-slate-500/10'
+                        : 'text-slate-400 hover:bg-white/5 hover:text-white hover:translate-x-1'
+                        }`}>
+                        <div className={`p-2 rounded-lg transition-colors ${pathname.startsWith('/admin/settings') ? 'bg-slate-500 text-white' : 'bg-slate-800 text-slate-400 group-hover:bg-slate-700'}`}>
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        </div>
+                        <span>Pengaturan Admin</span>
+                        {pathname.startsWith('/admin/settings') && (
+                            <div className="ml-auto w-1.5 h-1.5 rounded-full bg-slate-400 shadow-[0_0_8px_rgba(148,163,184,0.6)]"></div>
                         )}
                     </Link>
 
