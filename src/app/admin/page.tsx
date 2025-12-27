@@ -69,11 +69,21 @@ export default function AdminDashboard() {
 
     const fetchStats = async () => {
         try {
+            let totalQuery = supabase.from('students').select('*', { count: 'exact', head: true })
+            let verifiedQuery = supabase.from('students').select('*', { count: 'exact', head: true }).eq('is_verified', true)
+            let pendingQuery = supabase.from('students').select('*', { count: 'exact', head: true }).eq('is_verified', false)
+
+            if (selectedRombel) {
+                totalQuery = totalQuery.eq('rombel', selectedRombel)
+                verifiedQuery = verifiedQuery.eq('rombel', selectedRombel)
+                pendingQuery = pendingQuery.eq('rombel', selectedRombel)
+            }
+
             // Parallel requests for counts
             const [totalRes, verifiedRes, pendingRes] = await Promise.all([
-                supabase.from('students').select('*', { count: 'exact', head: true }), // Total
-                supabase.from('students').select('*', { count: 'exact', head: true }).eq('is_verified', true), // Verified
-                supabase.from('students').select('*', { count: 'exact', head: true }).eq('is_verified', false) // Pending
+                totalQuery,
+                verifiedQuery,
+                pendingQuery
             ])
 
             setStats({
