@@ -245,39 +245,66 @@ export default function StudentDashboard() {
                 <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
                 <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
 
-                <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-                    <div className="space-y-2">
+                <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8 md:gap-12">
+                    <div className="space-y-4 md:flex-1 md:max-w-[60%]">
                         <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight leading-tight">
                             Halo, <br className="md:hidden" />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-indigo-200">
                                 {studentData.nama}
                             </span>
                         </h1>
-                        <p className="text-blue-200/80 text-sm md:text-lg max-w-xl leading-relaxed">
+                        <p className="text-blue-200/80 text-sm md:text-lg leading-relaxed">
                             Akses data akademikmu dengan mudah, aman, dan transparan. <br className="hidden md:block" />
                             Silakan periksa kelengkapan datamu di bawah ini.
                         </p>
+                    </div>
 
-                        <div className="pt-4 flex flex-col sm:flex-row gap-3 w-full max-w-lg">
+                    <div className="flex flex-col gap-4 w-full md:flex-1 md:max-w-[40%]">
+                        {/* Konsultasi AI - Primary Action */}
+                        <button
+                            onClick={() => router.push('/ai-chat')}
+                            className="group relative w-full flex items-center p-4 rounded-2xl bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 text-white shadow-xl shadow-purple-500/30 transition-all hover:scale-[1.02] active:scale-[0.98] overflow-hidden"
+                        >
+                            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20 mix-blend-overlay"></div>
+                            <div className="absolute -right-10 -top-10 w-32 h-32 bg-white/20 rounded-full blur-2xl group-hover:bg-white/30 transition-all"></div>
+
+                            <div className="relative z-10 p-3 bg-white/20 rounded-xl backdrop-blur-sm mr-4 shadow-inner">
+                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"></path></svg>
+                            </div>
+                            <div className="text-left flex-1">
+                                <div className="flex items-center gap-2">
+                                    <h3 className="font-bold text-lg">Tanya AI</h3>
+                                    <span className="px-2 py-0.5 rounded-full bg-pink-500 text-[10px] font-bold uppercase tracking-wider shadow-sm animate-pulse">New</span>
+                                </div>
+                                <p className="text-purple-100 text-xs font-medium opacity-90">Bantuan tugas & materi sekolah</p>
+                            </div>
+                            <div className="bg-white/20 p-2 rounded-full backdrop-blur-sm group-hover:bg-white/30 transition-colors">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
+                            </div>
+                        </button>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            {/* Ganti Password */}
                             <button
                                 onClick={() => setShowPasswordModal(true)}
-                                className="group relative flex-1 inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/10 text-white font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98] backdrop-blur-md"
+                                className="group relative flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-800/80 hover:bg-slate-700/80 border border-white/10 text-white transition-all hover:-translate-y-1 active:scale-[0.98] backdrop-blur-md"
                             >
-                                <div className="p-1 rounded bg-indigo-500/20 text-indigo-300 mr-2 group-hover:bg-indigo-500 group-hover:text-white transition-colors">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+                                <div className="p-3 rounded-xl bg-blue-500/20 text-blue-300 mb-3 group-hover:bg-blue-500 group-hover:text-white transition-colors box-shadow-glow">
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                                 </div>
-                                <span>Ganti Password</span>
+                                <span className="font-bold text-sm">Ganti Password</span>
                             </button>
 
+                            {/* Download Excel */}
                             <button
                                 onClick={handleExport}
-                                className="group relative flex-1 inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-emerald-900/20 overflow-hidden"
+                                className="group relative flex flex-col items-center justify-center p-4 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/20 transition-all hover:-translate-y-1 active:scale-[0.98] overflow-hidden"
                             >
                                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
-                                <div className="p-1 rounded bg-emerald-400/20 text-emerald-100 mr-2">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                <div className="relative z-10 p-3 rounded-xl bg-white/20 text-white mb-3 shadow-inner">
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                                 </div>
-                                <span>Download Excel</span>
+                                <span className="font-bold text-sm relative z-10">Download Data</span>
                             </button>
                         </div>
                     </div>
@@ -302,9 +329,9 @@ export default function StudentDashboard() {
                                 <p className="text-slate-400 text-sm mt-1">Selesaikan misi untuk melengkapi profilmu!</p>
                             </div>
                             <div className="text-right">
-                                <span className={`text-3xl font-black ${(isVerified && studentData.no_hp) ? 'text-green-400' : 'text-orange-400'
+                                <span className={`text-3xl font-black ${(isVerified && studentData.no_hp && studentData.email && studentData.no_hp_ortu) ? 'text-green-400' : 'text-orange-400'
                                     }`}>
-                                    {isVerified && studentData.no_hp ? '100%' : (isVerified || studentData.no_hp ? '50%' : '0%')}
+                                    {isVerified && studentData.no_hp && studentData.email && studentData.no_hp_ortu ? '100%' : (isVerified || (studentData.no_hp && studentData.email && studentData.no_hp_ortu) ? '50%' : '0%')}
                                 </span>
                             </div>
                         </div>
@@ -312,9 +339,9 @@ export default function StudentDashboard() {
                         {/* Progress Bar */}
                         <div className="w-full h-4 bg-slate-800 rounded-full overflow-hidden relative border border-white/5">
                             <div
-                                className={`h-full rounded-full transition-all duration-1000 ease-out relative ${(isVerified && studentData.no_hp)
+                                className={`h-full rounded-full transition-all duration-1000 ease-out relative ${(isVerified && studentData.no_hp && studentData.email && studentData.no_hp_ortu)
                                     ? 'bg-gradient-to-r from-green-500 to-emerald-400 w-full'
-                                    : (isVerified || studentData.no_hp ? 'bg-gradient-to-r from-orange-500 to-amber-400 w-1/2' : 'w-0')
+                                    : (isVerified || (studentData.no_hp && studentData.email && studentData.no_hp_ortu) ? 'bg-gradient-to-r from-orange-500 to-amber-400 w-1/2' : 'w-0')
                                     }`}
                             >
                                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/simple-dashed.png')] opacity-30 animate-pulse"></div>
@@ -355,25 +382,25 @@ export default function StudentDashboard() {
                         </div>
 
                         {/* Task 2: Contact Info */}
-                        <div className={`flex items-center gap-4 p-3 rounded-xl border transition-all ${studentData.no_hp
+                        <div className={`flex items-center gap-4 p-3 rounded-xl border transition-all ${(studentData.no_hp && studentData.email && studentData.no_hp_ortu)
                             ? 'bg-green-500/10 border-green-500/20'
                             : 'bg-slate-800/50 border-white/5 hover:border-orange-500/30'
                             }`}>
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${studentData.no_hp ? 'bg-green-500 text-white' : 'bg-slate-700 text-slate-400'
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${(studentData.no_hp && studentData.email && studentData.no_hp_ortu) ? 'bg-green-500 text-white' : 'bg-slate-700 text-slate-400'
                                 }`}>
-                                {studentData.no_hp ? (
+                                {(studentData.no_hp && studentData.email && studentData.no_hp_ortu) ? (
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
                                 ) : (
                                     <span className="font-bold text-xs">2</span>
                                 )}
                             </div>
                             <div className="flex-1">
-                                <h4 className={`text-sm font-bold ${studentData.no_hp ? 'text-green-400' : 'text-white'}`}>
-                                    Update Nomor HP & Email
+                                <h4 className={`text-sm font-bold ${(studentData.no_hp && studentData.email && studentData.no_hp_ortu) ? 'text-green-400' : 'text-white'}`}>
+                                    Update Kontak
                                 </h4>
-                                {!studentData.no_hp && <p className="text-xs text-slate-400">Agar info sekolah tersampaikan.</p>}
+                                {!(studentData.no_hp && studentData.email && studentData.no_hp_ortu) && <p className="text-xs text-slate-400">No HP, Email & No HP Ortu.</p>}
                             </div>
-                            {!studentData.no_hp && (
+                            {!(studentData.no_hp && studentData.email && studentData.no_hp_ortu) && (
                                 <button
                                     onClick={() => router.push('/student/contact')}
                                     className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 rounded-lg text-xs font-semibold text-white transition-colors shadow-lg shadow-orange-500/20"
@@ -417,7 +444,7 @@ export default function StudentDashboard() {
                     <div className="hidden md:block absolute left-1/2 top-8 bottom-8 w-px bg-gradient-to-b from-transparent via-white/10 to-transparent"></div>
 
                     {Object.entries(studentData)
-                        .filter(([key]) => !['id', 'created_at', 'updated_at', 'is_verified', 'verified_at', 'user_id', 'password'].includes(key))
+                        .filter(([key]) => !['id', 'created_at', 'updated_at', 'is_verified', 'verified_at', 'user_id', 'password', 'no_hp', 'email', 'no_hp_ortu'].includes(key))
                         .map(([key, value]) => (
                             <div key={key} className="group relative pl-4 transition-all hover:translate-x-1">
                                 <div className="absolute left-0 top-1.5 bottom-1.5 w-0.5 bg-slate-700 group-hover:bg-blue-500 transition-colors rounded-full"></div>

@@ -8,6 +8,7 @@ export default function ContactPage() {
     const router = useRouter()
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
+    const [isEditing, setIsEditing] = useState(false)
     const [studentId, setStudentId] = useState<string | null>(null)
     const [formData, setFormData] = useState({
         no_hp: '',
@@ -29,17 +30,13 @@ export default function ContactPage() {
             }
 
             try {
-                // Fetch student data including contact info
-                // Note: Ensure the columns no_hp, email, no_hp_ortu exist in your 'students' table
-                const { data, error } = await supabase
-                    .from('students')
-                    .select('id, no_hp, email, no_hp_ortu')
-                    .eq('nisn', nisn)
-                    .order('is_verified', { ascending: false })
-                    .limit(1)
-                    .single()
+                // Fetch student data using the server-side API to bypass RLS issues
+                const response = await fetch(`/api/students/detail?nisn=${nisn}`)
+                const result = await response.json()
 
-                if (error) throw error
+                if (!response.ok) throw new Error(result.error || 'Gagal mengambil data')
+
+                const data = result.data
 
                 if (data) {
                     setStudentId(data.id)
@@ -49,8 +46,8 @@ export default function ContactPage() {
                         no_hp_ortu: data.no_hp_ortu || ''
                     })
                 }
-            } catch (error) {
-                console.error('Error fetching contact:', error)
+            } catch (error: any) {
+                console.error('Error fetching contact:', error.message || error)
             } finally {
                 setLoading(false)
             }
@@ -94,6 +91,8 @@ export default function ContactPage() {
                 message: 'Data kontak berhasil disimpan!'
             })
 
+            setIsEditing(false)
+
             // Hide notification after 3 seconds
             setTimeout(() => {
                 setNotification(prev => ({ ...prev, show: false }))
@@ -118,19 +117,30 @@ export default function ContactPage() {
         )
     }
 
-    const inputClass = "w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all"
+    const inputClass = "w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
     const labelClass = "block text-slate-400 text-xs uppercase tracking-wider font-semibold mb-2"
 
     return (
         <div className="max-w-2xl mx-auto space-y-6 pb-20">
             {/* Header */}
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent mb-2">
-                    Kontak Saya
-                </h1>
-                <p className="text-slate-400 text-sm">
-                    Lengkapi informasi kontak agar sekolah dapat menghubungi Anda dengan mudah.
-                </p>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8">
+                <div>
+                    <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent mb-2">
+                        Kontak Saya
+                    </h1>
+                    <p className="text-slate-400 text-sm">
+                        Lengkapi informasi kontak agar sekolah dapat menghubungi Anda.
+                    </p>
+                </div>
+                {!isEditing && (
+                    <button
+                        onClick={() => setIsEditing(true)}
+                        className="px-6 py-2 bg-slate-800 hover:bg-slate-700 border border-white/10 rounded-lg text-white font-bold text-sm transition-all flex items-center gap-2"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                        Edit Data
+                    </button>
+                )}
             </div>
 
             {/* Notification */}
@@ -171,9 +181,10 @@ export default function ContactPage() {
                                     value={formData.no_hp}
                                     onChange={handleChange}
                                     pattern="[0-9]*"
+                                    disabled={!isEditing}
                                 />
                             </div>
-                            <p className="text-xs text-slate-500 mt-2">Pastikan nomor terhubung dengan WhatsApp.</p>
+                            {isEditing && <p className="text-xs text-slate-500 mt-2">Pastikan nomor terhubung dengan WhatsApp.</p>}
                         </div>
 
                         {/* Email */}
@@ -193,6 +204,7 @@ export default function ContactPage() {
                                     className={`${inputClass} pl-12`}
                                     value={formData.email}
                                     onChange={handleChange}
+                                    disabled={!isEditing}
                                 />
                             </div>
                         </div>
@@ -215,31 +227,43 @@ export default function ContactPage() {
                                     value={formData.no_hp_ortu}
                                     onChange={handleChange}
                                     pattern="[0-9]*"
+                                    disabled={!isEditing}
                                 />
                             </div>
-                            <p className="text-xs text-slate-500 mt-2">Nomor yang dapat dihubungi dalam keadaan darurat.</p>
+                            {isEditing && <p className="text-xs text-slate-500 mt-2">Nomor yang dapat dihubungi dalam keadaan darurat.</p>}
                         </div>
                     </div>
                 </div>
 
-                {/* Save Button */}
-                <button
-                    type="submit"
-                    disabled={saving}
-                    className="w-full bg-gradient-to-r from-orange-500 to-red-600 hovered:from-orange-400 hovered:to-red-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-orange-500/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                    {saving ? (
-                        <>
-                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                            Menyimpan...
-                        </>
-                    ) : (
-                        <>
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
-                            Simpan Kontak
-                        </>
-                    )}
-                </button>
+                {/* Action Buttons */}
+                {isEditing && (
+                    <div className="flex gap-4">
+                        <button
+                            type="button"
+                            onClick={() => setIsEditing(false)}
+                            className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-4 rounded-xl border border-white/10 transition-all"
+                        >
+                            Batal
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={saving}
+                            className="flex-1 bg-gradient-to-r from-orange-500 to-red-600 hovered:from-orange-400 hovered:to-red-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-orange-500/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                            {saving ? (
+                                <>
+                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                    Menyimpan...
+                                </>
+                            ) : (
+                                <>
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                                    Simpan Perubahan
+                                </>
+                            )}
+                        </button>
+                    </div>
+                )}
             </form>
         </div>
     )

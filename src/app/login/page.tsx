@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import Link from 'next/link'
 import { supabase } from '@/utils/supabase'
 
 export default function LoginPage() {
@@ -255,8 +256,14 @@ export default function LoginPage() {
                     </form>
                 </div>
 
-                <div className="text-center mt-8 text-slate-500 text-sm">
-                    &copy; {new Date().getFullYear()} Tim IT SMAN 1 Pati. <br />All rights reserved.
+                <div className="text-center mt-8 text-slate-500 text-sm flex flex-col items-center gap-4">
+                    <Link href="/" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors group">
+                        <svg className="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                        Kembali ke Home
+                    </Link>
+                    <div>
+                        &copy; {new Date().getFullYear()} Tim IT SMAN 1 Pati. <br />All rights reserved.
+                    </div>
                 </div>
             </div>
         </div>

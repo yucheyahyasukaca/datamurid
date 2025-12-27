@@ -23,6 +23,15 @@ export async function middleware(request: NextRequest) {
         }
     }
 
+    // 3. Protect AI Chat Route (requires either admin or student session)
+    if (pathname.startsWith('/ai-chat')) {
+        const adminSession = request.cookies.get('admin_session')
+        const studentSession = request.cookies.get('student_session')
+        if (!adminSession && !studentSession) {
+            return NextResponse.redirect(new URL('/login', request.url))
+        }
+    }
+
     return NextResponse.next()
 }
 
