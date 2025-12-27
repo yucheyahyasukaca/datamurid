@@ -44,7 +44,7 @@ export default function Home() {
           </div>
 
           <div className="space-y-6 w-full mx-auto">
-            <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black tracking-tighter leading-tight text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-200 to-slate-400 drop-shadow-sm select-none py-6 pb-8">
+            <h1 className="text-3xl xs:text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-black tracking-tighter leading-tight text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-200 to-slate-400 drop-shadow-sm select-none py-6 pb-8">
               SMA Negeri 1 Pati
             </h1>
 
