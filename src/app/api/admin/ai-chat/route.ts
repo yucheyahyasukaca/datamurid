@@ -44,16 +44,46 @@ export async function POST(request: NextRequest) {
             // Continue without data, but log it
         }
 
+
+        // Calculate detailed stats per Rombel
+        const statsByRombel: Record<string, { total: number; verified: number; pending: number }> = {}
+        let totalStats = { total: 0, verified: 0, pending: 0 }
+
+        if (students) {
+            students.forEach(s => {
+                const rombel = s.rombel || 'Tanpa Kelas'
+
+                // Initialize if not exists
+                if (!statsByRombel[rombel]) {
+                    statsByRombel[rombel] = { total: 0, verified: 0, pending: 0 }
+                }
+
+                // Increment counts
+                statsByRombel[rombel].total++
+                totalStats.total++
+
+                if (s.is_verified) {
+                    statsByRombel[rombel].verified++
+                    totalStats.verified++
+                } else {
+                    statsByRombel[rombel].pending++
+                    totalStats.pending++
+                }
+            })
+        }
+
+        // Format Rombel Recap for AI
+        const rombelRecap = Object.entries(statsByRombel)
+            .sort((a, b) => a[0].localeCompare(b[0])) // Sort by class name
+            .map(([rombel, data]) => {
+                return `- **${rombel}**: Total ${data.total} (✅ ${data.verified} | ⏳ ${data.pending})`
+            })
+            .join('\n')
+
         // Format data into a concise context string
         const studentContext = students ? students.map(s =>
             `- ${s.nama} (${s.rombel || 'No Class'}) | Status: ${s.is_verified ? 'Verified' : 'Pending'} | NISN: ${s.nisn} | JK: ${s.jk}`
         ).join('\n') : 'Data siswa tidak tersedia saat ini.'
-
-        const stats = {
-            total: students?.length || 0,
-            verified: students?.filter(s => s.is_verified).length || 0,
-            pending: students?.filter(s => !s.is_verified).length || 0
-        }
 
         let systemInstruction = `Anda adalah Asisten AI Khusus untuk Bapak/Ibu Guru & Staf Admin di SMA Negeri 1 Pati.
         Tugas mulia Anda adalah membantu pengelolaan data siswa agar Bapak/Ibu Guru bisa lebih fokus mendidik.
@@ -63,10 +93,18 @@ export async function POST(request: NextRequest) {
         - Mereka adalah pahlawan tanpa tanda jasa yang sedang berjuang untuk masa depan siswa.
         - Berikan semangat, apresiasi, dan kalimat motivasi yang menguatkan hati mereka.
 
-        DATA STATISTIK SAAT INI:
-        - Total Siswa: ${stats.total}
-        - Sudah Verifikasi: ${stats.verified}
-        - Belum Verifikasi: ${stats.pending}
+        DATA STATISTIK SAAT INI (Update Real-time):
+        
+        **RINGKASAN TOTAL:**
+        - Total Siswa: ${totalStats.total}
+        - Sudah Verifikasi: ${totalStats.verified}
+        - Belum Verifikasi: ${totalStats.pending}
+        
+        **REKAP PER KELAS (ROMBEL):**
+        ${rombelRecap}
+
+        (Gunakan data di atas untuk menjawab pertanyaan jumlah/statistik. Jangan menghitung manual dari list nama di bawah karena rawan salah hitung).
+
 
         DATABASE SISWA LENGKAP (Gunakan ini untuk menjawab pertanyaan spesifik):
         === MULAI DATA ===
