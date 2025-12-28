@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
         // We fetch simplified fields to save tokens while giving "all seeing" capability
         const { data: students, error: dbError } = await supabaseAdmin
             .from('students')
-            .select('nama, nisn, rombel, is_verified, nipd, jk')
+            .select('nama, nisn, rombel, is_verified, nipd, jk, tanggal_lahir, alamat, kelurahan, kecamatan')
             .order('nama', { ascending: true })
 
         if (dbError) {
@@ -45,9 +45,12 @@ export async function POST(request: NextRequest) {
         }
 
 
-        // Calculate detailed stats per Rombel
+        // Calculate detailed stats per Rombel & Find Oldest/Youngest
         const statsByRombel: Record<string, { total: number; verified: number; pending: number }> = {}
         let totalStats = { total: 0, verified: 0, pending: 0 }
+
+        let oldestStudent: any = null
+        let youngestStudent: any = null
 
         if (students) {
             students.forEach(s => {
@@ -69,6 +72,21 @@ export async function POST(request: NextRequest) {
                     statsByRombel[rombel].pending++
                     totalStats.pending++
                 }
+
+                // Check Oldest/Youngest
+                if (s.tanggal_lahir) {
+                    const birthDate = new Date(s.tanggal_lahir)
+
+                    // Oldest (Min Date)
+                    if (!oldestStudent || birthDate < new Date(oldestStudent.tanggal_lahir)) {
+                        oldestStudent = s
+                    }
+
+                    // Youngest (Max Date)
+                    if (!youngestStudent || birthDate > new Date(youngestStudent.tanggal_lahir)) {
+                        youngestStudent = s
+                    }
+                }
             })
         }
 
@@ -82,7 +100,7 @@ export async function POST(request: NextRequest) {
 
         // Format data into a concise context string
         const studentContext = students ? students.map(s =>
-            `- ${s.nama} (${s.rombel || 'No Class'}) | Status: ${s.is_verified ? 'Verified' : 'Pending'} | NISN: ${s.nisn} | JK: ${s.jk}`
+            `- ${s.nama} (${s.rombel || 'No Class'}) | Status: ${s.is_verified ? 'Verified' : 'Pending'} | NISN: ${s.nisn} | JK: ${s.jk} | Tgl Lahir: ${s.tanggal_lahir || '-'} | Alamat: ${s.alamat || '-'}, ${s.kelurahan || '-'}, ${s.kecamatan || '-'}`
         ).join('\n') : 'Data siswa tidak tersedia saat ini.'
 
         let systemInstruction = `Anda adalah Asisten AI Khusus untuk Bapak/Ibu Guru & Staf Admin di SMA Negeri 1 Pati.
@@ -100,6 +118,16 @@ export async function POST(request: NextRequest) {
         - Sudah Verifikasi: ${totalStats.verified}
         - Belum Verifikasi: ${totalStats.pending}
         
+        **STATISTIK DEMOGRAFI (Berdasarkan Tanggal Lahir):**
+        - Murid Paling Tua: ${oldestStudent ? `${oldestStudent.nama} (${oldestStudent.rombel}) - Lahir: ${oldestStudent.tanggal_lahir}` : 'Data belum tersedia'}
+        - Murid Paling Muda: ${youngestStudent ? `${youngestStudent.nama} (${youngestStudent.rombel}) - Lahir: ${youngestStudent.tanggal_lahir}` : 'Data belum tersedia'}
+
+        **KONTEKS GEOGRAFIS:**
+        - Sekolah: SMA Negeri 1 Pati (Jl. P. Sudirman No. 24, Pati Kota).
+        - Untuk pertanyaan "Paling Jauh" atau "Paling Dekat", gunakan logika kecamatan/kelurahan dari data alamat siswa.
+        - Dekat: Pati Kota, Margorejo.
+        - Jauh: Pucakwangi, Jaken, Tayu, Dukuhseti.
+
         **REKAP PER KELAS (ROMBEL):**
         ${rombelRecap}
 
