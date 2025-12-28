@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import AdminSessionGuard from './AdminSessionGuard'
 
 export default function AdminLayout({
     children,
@@ -27,6 +28,8 @@ export default function AdminLayout({
                     onClick={() => setSidebarOpen(false)}
                 />
             )}
+
+            <AdminSessionGuard />
 
             {/* Sidebar */}
             <aside className={`
