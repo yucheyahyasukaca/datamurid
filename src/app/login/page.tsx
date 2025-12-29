@@ -32,22 +32,26 @@ export default function LoginPage() {
 
         try {
             if (loginMode === 'admin') {
-                // Admin Authenticated with Supabase Auth
-                const { data, error: authError } = await supabase.auth.signInWithPassword({
-                    email: formData.identifier,
-                    password: formData.password,
+                // Admin Login via Secure API
+                const res = await fetch('/api/auth/admin-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: formData.identifier,
+                        password: formData.password,
+                    })
                 })
 
-                if (authError) throw authError
+                const result = await res.json()
 
-                // Clear student session if any
+                if (!res.ok) {
+                    throw new Error(result.error || 'Gagal masuk')
+                }
+
+                // Clear any old cookies just in case
                 localStorage.removeItem('student_nisn')
-                document.cookie = "student_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;"
 
-                // Set Admin Session Cookie for Middleware
-                document.cookie = "admin_session=true; path=/; max-age=86400"
-
-                // Use window.location.href for full page reload to ensure cookies are set
+                // Redirect
                 window.location.href = '/admin'
 
             } else {
@@ -71,12 +75,7 @@ export default function LoginPage() {
                 const student = result.data
                 localStorage.setItem('student_nisn', student.nisn)
 
-                // Set Student Session Cookie for Middleware
-                document.cookie = "student_session=true; path=/; max-age=86400"
-                // Clear admin cookie
-                document.cookie = "admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;"
-
-                // Use window.location.href for full page reload to ensure cookies are set
+                // Redirect
                 window.location.href = '/student'
             }
 

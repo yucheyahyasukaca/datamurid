@@ -2,6 +2,7 @@ export const runtime = 'edge'
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/utils/supabase-admin'
 import { compare } from 'bcrypt-ts'
+import { signToken } from '@/lib/auth'
 
 export async function POST(request: Request) {
     try {
@@ -51,13 +52,33 @@ export async function POST(request: Request) {
         }
 
         // 3. Login Successful
-        return NextResponse.json({
+        // 3. Login Successful - Create Session Token
+        const token = await signToken({
+            sub: student.id,
+            nisn: student.nisn,
+            role: 'student',
+            name: student.nama
+        })
+
+        const response = NextResponse.json({
             success: true,
             data: {
                 nisn: student.nisn,
                 nama: student.nama
             }
         })
+
+        response.cookies.set({
+            name: 'auth_token',
+            value: token,
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+            maxAge: 60 * 60 * 24 // 1 day
+        })
+
+        return response
 
     } catch (error: any) {
         console.error('Student Login Error:', error)

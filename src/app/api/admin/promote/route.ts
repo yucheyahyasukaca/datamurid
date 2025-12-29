@@ -5,8 +5,19 @@ import { supabase } from '@/utils/supabase'
 
 export const runtime = 'edge'
 
+import { verifyToken } from '@/lib/auth'
+import { cookies } from 'next/headers'
+
 export async function POST(req: NextRequest) {
     try {
+        // Auth Check
+        const cookieStore = await cookies()
+        const token = cookieStore.get('auth_token')?.value
+        const payload = token ? await verifyToken(token) : null
+
+        if (!payload || payload.role !== 'admin') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
         const { email } = await req.json() // acts as identifier (email or uuid)
 
         if (!email) {

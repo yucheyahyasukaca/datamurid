@@ -1,11 +1,21 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/utils/supabase-admin'
+import { verifyToken } from '@/lib/auth'
+import { cookies } from 'next/headers'
 
 export const runtime = 'edge'
 export const dynamic = 'force-dynamic'
 
-export async function POST() {
+export async function POST(request: Request) {
     try {
+        // Auth Check
+        const cookieStore = await cookies()
+        const token = cookieStore.get('auth_token')?.value
+        const payload = token ? await verifyToken(token) : null
+
+        if (!payload || payload.role !== 'admin') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
         // Attempt to select from the table to check if it exists
         const { error } = await supabaseAdmin
             .from('student_logs')

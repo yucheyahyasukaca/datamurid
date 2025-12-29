@@ -8,11 +8,15 @@ export const runtime = 'edge'
 // Initialize Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
 
+import { verifyToken } from '@/lib/auth'
+
 export async function POST(request: NextRequest) {
     try {
         // Double-check authentication (Defense in Depth)
-        const adminSession = request.cookies.get('admin_session')
-        if (!adminSession) {
+        const token = request.cookies.get('auth_token')?.value
+        const payload = token ? await verifyToken(token) : null
+
+        if (!payload || payload.role !== 'admin') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 

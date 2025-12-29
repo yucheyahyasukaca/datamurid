@@ -4,8 +4,19 @@ import { supabaseAdmin } from '@/utils/supabase-admin'
 
 export const runtime = 'edge'
 
+import { verifyToken } from '@/lib/auth'
+import { cookies } from 'next/headers'
+
 export async function GET() {
     try {
+        // Auth Check
+        const cookieStore = await cookies()
+        const token = cookieStore.get('auth_token')?.value
+        const payload = token ? await verifyToken(token) : null
+
+        if (!payload || payload.role !== 'admin') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
         // Fetch users with role 'admin' from profiles table
         const { data: profiles, error } = await supabaseAdmin
             .from('profiles')

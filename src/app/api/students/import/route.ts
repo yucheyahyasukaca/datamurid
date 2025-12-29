@@ -21,17 +21,30 @@ export async function POST(req: NextRequest) {
             try {
                 // 1. Prepare Auth Credentials
                 // Format: [nisn]@student.sman1pati.sch.id
-                if (!student.nisn || !student.tanggal_lahir) {
-                    throw new Error(`Data tidak lengkap for ${student.nama || 'Unknown'}`)
+                if (!student.nisn || !student.tanggal_lahir || !student.nama) {
+                    // Log specific missing field for debugging
+                    const missing = [];
+                    if (!student.nisn) missing.push('nisn');
+                    if (!student.tanggal_lahir) missing.push('tanggal_lahir');
+                    if (!student.nama) missing.push('nama');
+                    throw new Error(`Data tidak lengkap for ${student.nama || 'Unknown'}. Missing: ${missing.join(', ')}`)
+                }
+
+                // Validate NISN format (numeric)
+                if (!/^\d+$/.test(student.nisn)) {
+                    throw new Error(`Format NISN salah for ${student.nama}: ${student.nisn}`)
                 }
 
                 const email = `${student.nisn}@student.sman1pati.sch.id`
 
                 // Format Password: DDMMYYYY from YYYY-MM-DD
-                // Input date is likely "YYYY-MM-DD" or raw string. Let's parse carefully.
-                // Assuming standard "YYYY-MM-DD" from the frontend processing
+                // Input date is likely "YYYY-MM-DD"
+                // Validate date string
+                if (!/^\d{4}-\d{2}-\d{2}$/.test(student.tanggal_lahir)) {
+                    throw new Error(`Format tanggal lahir salah (harus YYYY-MM-DD): ${student.tanggal_lahir}`)
+                }
+
                 const dateParts = student.tanggal_lahir.split('-')
-                if (dateParts.length !== 3) throw new Error(`Format tanggal lahir salah: ${student.tanggal_lahir}`)
 
                 const password = `${dateParts[2]}${dateParts[1]}${dateParts[0]}` // DDMMYYYY
 

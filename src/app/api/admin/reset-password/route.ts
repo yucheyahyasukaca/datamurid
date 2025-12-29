@@ -4,13 +4,16 @@ import { supabaseAdmin } from '@/utils/supabase-admin'
 import { genSalt, hash } from 'bcrypt-ts'
 import { cookies } from 'next/headers'
 
+import { verifyToken } from '@/lib/auth'
+
 export async function POST(request: Request) {
     try {
-        // 1. Check Admin Session
+        // 1. Check Admin Session (Secure JWT)
         const cookieStore = await cookies()
-        const adminSession = cookieStore.get('admin_session')
+        const token = cookieStore.get('auth_token')?.value
+        const payload = token ? await verifyToken(token) : null
 
-        if (!adminSession || adminSession.value !== 'true') {
+        if (!payload || payload.role !== 'admin') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 

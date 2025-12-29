@@ -21,41 +21,46 @@ export default function AIChatPage() {
     const [studentContext, setStudentContext] = useState<any>(null)
     const messagesEndRef = useRef<HTMLDivElement>(null)
 
-    // Check authentication and fetch context
     useEffect(() => {
         const init = async () => {
+            // Updated for HttpOnly Cookies:
+            // We cannot check document.cookie for auth_token.
+            // We rely on Middleware to have protected this route.
+            // If we are here, we are likely authenticated.
+
             const studentNisn = localStorage.getItem('student_nisn')
-            const cookies = document.cookie.split(';')
-            const hasAdminSession = cookies.some(c => c.trim().startsWith('admin_session='))
-            const hasStudentSession = cookies.some(c => c.trim().startsWith('student_session='))
+            setIsAuthenticated(true) // Assume true if page loaded
 
-            if (studentNisn || hasAdminSession || hasStudentSession) {
-                setIsAuthenticated(true)
+            if (studentNisn) {
+                try {
+                    const res = await fetch(`/api/students/detail?nisn=${studentNisn}`)
 
-                // Fetch student data for context if NISN exists
-                if (studentNisn) {
-                    try {
-                        const res = await fetch(`/api/students/detail?nisn=${studentNisn}`)
-                        const json = await res.json()
-                        if (json.data) {
-                            const data = json.data
-                            const requiredFields = ['nama', 'nisn', 'tempat_lahir', 'tanggal_lahir', 'nik', 'agama', 'nama_ayah', 'nama_ibu']
-                            const missing = requiredFields.filter(f => !data[f])
-
-                            setStudentContext({
-                                name: data.nama,
-                                missingFields: missing,
-                                isVerified: data.is_verified,
-                                nisn: data.nisn
-                            })
-                        }
-                    } catch (e) {
-                        console.error("Failed to fetch student context", e)
+                    if (res.status === 401) {
+                        setIsAuthenticated(false)
+                        router.push('/login')
+                        return
                     }
+
+                    const json = await res.json()
+                    if (json.data) {
+                        const data = json.data
+                        const requiredFields = ['nama', 'nisn', 'tempat_lahir', 'tanggal_lahir', 'nik', 'agama', 'nama_ayah', 'nama_ibu']
+                        const missing = requiredFields.filter(f => !data[f])
+
+                        setStudentContext({
+                            name: data.nama,
+                            missingFields: missing,
+                            isVerified: data.is_verified,
+                            nisn: data.nisn
+                        })
+                    }
+                } catch (e) {
+                    console.error("Failed to fetch student context", e)
                 }
             } else {
-                setIsAuthenticated(false)
-                router.push('/login')
+                // If no NISN in localstorage, we might be an admin viewing this or a student with cleared storage?
+                // Just let them chat without context or redirect?
+                // For now, allow it but maybe minimal context.
             }
         }
 

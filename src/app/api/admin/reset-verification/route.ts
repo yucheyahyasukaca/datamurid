@@ -1,36 +1,23 @@
-// Force rebuild: Fix module not found error
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/utils/supabase-admin'
+import { verifyToken } from '@/lib/auth'
+import { cookies } from 'next/headers'
 
 export const runtime = 'edge'
 
 export async function POST(request: Request) {
     try {
-        // 1. Check Authorization Header
-        const authHeader = request.headers.get('Authorization')
-        if (!authHeader) {
-            return NextResponse.json({ error: 'Missing Authorization header' }, { status: 401 })
+        // 1. Check Admin Session (Secure JWT)
+        const cookieStore = await cookies()
+        const token = cookieStore.get('auth_token')?.value
+        const payload = token ? await verifyToken(token) : null
+
+        if (!payload || payload.role !== 'admin') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const token = authHeader.replace('Bearer ', '')
-
-        // 2. Verify User using Supabase (Auth)
-        const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
-
-        if (authError || !user) {
-            return NextResponse.json({ error: 'Invalid Token' }, { status: 401 })
-        }
-
-        // 3. Verify Admin Role
-        const { data: profile } = await supabaseAdmin
-            .from('profiles')
-            .select('role')
-            .eq('id', user.id)
-            .single()
-
-        if (profile?.role !== 'admin') {
-            return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 })
-        }
+        // Use payload email for logging
+        const adminEmail = payload.email || 'admin@sman1pati.sch.id'
 
         // 4. Get Request Body
         const { studentId } = await request.json()
@@ -64,7 +51,7 @@ export async function POST(request: Request) {
         await supabaseAdmin
             .from('student_logs')
             .insert({
-                admin_email: user.email,
+                admin_email: adminEmail,
                 student_name: student.nama,
                 student_id: studentId,
                 action: 'RESET_VERIFICATION',
