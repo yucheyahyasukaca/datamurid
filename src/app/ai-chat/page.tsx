@@ -81,12 +81,20 @@ export default function AIChatPage() {
         setLoading(true)
 
         try {
+            // Prepare history (last 10 messages to save context/tokens)
+            // Convert to Gemini format: 'user' -> 'user', 'assistant' -> 'model'
+            const history = messages.slice(-10).map(m => ({
+                role: m.role === 'user' ? 'user' : 'model',
+                parts: [{ text: m.content }]
+            }));
+
             const response = await fetch('/api/ai-chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     message: userMessage.content,
-                    studentContext: studentContext // Inject context
+                    history: history, // Send history
+                    studentContext: studentContext
                 })
             })
 
