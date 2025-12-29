@@ -90,10 +90,10 @@ export default function AdminAIPage() {
     }
 
     const suggestions = [
-        { text: "Tampilkan statistik siswa", icon: "📊" },
-        { text: "Siapa siswa yang belum verifikasi?", icon: "⚠️" },
-        { text: "Analisis performa nilai", icon: "📈" },
-        { text: "Bantu buat pengumuman", icon: "📢" }
+        { text: "Analisis tren SNBP 2025", icon: "📈" },
+        { text: "Berapa total diterima di UGM?", icon: "🎓" },
+        { text: "Cek siswa lolos SNBP", icon: "🔍" },
+        { text: "Siapa siswa belum verifikasi?", icon: "⚠️" }
     ]
 
     return (

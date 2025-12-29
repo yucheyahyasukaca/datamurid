@@ -789,7 +789,19 @@
   },
   {
     "year": 2025,
-    "ptn": "UPN  VETERAN YOGYAKARTA",
+    "ptn": "UPN \"VETERAN\" JAKARTA",
+    "prodi": "KEDOKTERAN",
+    "count": 1,
+    "details": [
+      {
+        "name": "Ahmad Amirul Murtadho",
+        "kelas": "XII F-5"
+      }
+    ]
+  },
+  {
+    "year": 2025,
+    "ptn": "UPN \"VETERAN\" YOGYAKARTA",
     "prodi": "S1 TEKNIK PERTAMBANGAN",
     "count": 1,
     "details": [
@@ -801,7 +813,7 @@
   },
   {
     "year": 2025,
-    "ptn": "UPN  VETERAN YOGYAKARTA",
+    "ptn": "UPN \"VETERAN\" YOGYAKARTA",
     "prodi": "TEKNIK INFORMATIKA S1",
     "count": 1,
     "details": [
@@ -813,7 +825,7 @@
   },
   {
     "year": 2025,
-    "ptn": "UPN  VETERAN YOGYAKARTA",
+    "ptn": "UPN \"VETERAN\" YOGYAKARTA",
     "prodi": "SISTEM INFORMASI",
     "count": 1,
     "details": [
@@ -825,7 +837,7 @@
   },
   {
     "year": 2025,
-    "ptn": "UPN  VETERAN YOGYAKARTA",
+    "ptn": "UPN \"VETERAN\" YOGYAKARTA",
     "prodi": "TEKNIK INDUSTRI",
     "count": 1,
     "details": [
@@ -837,25 +849,13 @@
   },
   {
     "year": 2025,
-    "ptn": "UPN  VETERAN YOGYAKARTA",
+    "ptn": "UPN \"VETERAN\" YOGYAKARTA",
     "prodi": "TEKNIK PERMINYAKAN S1",
     "count": 1,
     "details": [
       {
         "name": "YOGA ALVAN ADHINATA",
         "kelas": "XII F-9"
-      }
-    ]
-  },
-  {
-    "year": 2025,
-    "ptn": "UPN VETERAN JAKARTA",
-    "prodi": "KEDOKTERAN",
-    "count": 1,
-    "details": [
-      {
-        "name": "Ahmad Amirul Murtadho",
-        "kelas": "XII F-5"
       }
     ]
   },
@@ -1769,7 +1769,7 @@
   },
   {
     "year": 2024,
-    "ptn": "UPN VETERAN YOGYAKARTA",
+    "ptn": "UPN \"VETERAN\" YOGYAKARTA",
     "prodi": "TEKNIK GEOLOGI S1",
     "count": 1,
     "details": [
@@ -1781,7 +1781,7 @@
   },
   {
     "year": 2024,
-    "ptn": "UPN VETERAN YOGYAKARTA",
+    "ptn": "UPN \"VETERAN\" YOGYAKARTA",
     "prodi": "AGROTEKNOLOGI",
     "count": 1,
     "details": [
@@ -1793,7 +1793,7 @@
   },
   {
     "year": 2024,
-    "ptn": "UPN VETERAN YOGYAKARTA",
+    "ptn": "UPN \"VETERAN\" YOGYAKARTA",
     "prodi": "TEKNIK PERMINYAKAN S1",
     "count": 1,
     "details": [
@@ -1805,7 +1805,7 @@
   },
   {
     "year": 2024,
-    "ptn": "UPN VETERAN YOGYAKARTA",
+    "ptn": "UPN \"VETERAN\" YOGYAKARTA",
     "prodi": "TEKNIK PERTAMBANGAN S1",
     "count": 1,
     "details": [
@@ -1817,7 +1817,7 @@
   },
   {
     "year": 2024,
-    "ptn": "UPN VETERAN YOGYAKARTA",
+    "ptn": "UPN \"VETERAN\" YOGYAKARTA",
     "prodi": "SISTEM INFORMASI",
     "count": 3,
     "details": [
@@ -2709,6 +2709,18 @@
   },
   {
     "year": 2023,
+    "ptn": "UPN \"VETERAN\" YOGYAKARTA",
+    "prodi": "Manajemen",
+    "count": 1,
+    "details": [
+      {
+        "name": "Nafisa Hamidah",
+        "kelas": "XII IPS 2"
+      }
+    ]
+  },
+  {
+    "year": 2023,
     "ptn": "UPN Jogjakarta",
     "prodi": "Teknik Industri",
     "count": 1,
@@ -2716,18 +2728,6 @@
       {
         "name": "Redita Reissabelva Eveline R",
         "kelas": "XII MIPA 1"
-      }
-    ]
-  },
-  {
-    "year": 2023,
-    "ptn": "UPN Veteran Yogyakarta",
-    "prodi": "Manajemen",
-    "count": 1,
-    "details": [
-      {
-        "name": "Nafisa Hamidah",
-        "kelas": "XII IPS 2"
       }
     ]
   },

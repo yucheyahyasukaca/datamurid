@@ -45,18 +45,61 @@ export async function POST(request: NextRequest) {
         try {
             const alumniData = require('@/data/alumni-snbp.json');
 
-            // Filter alumni data relevant to the user's query (Simple keyword match)
-            // Or just inject summary if the file is small (for now, assume it's small enough or just inject relevant ones)
-            // Strategy: Inject ALL history for now as it's high value context and likely not huge (< 500 records)
-
             if (Array.isArray(alumniData) && alumniData.length > 0) {
                 systemInstruction += `\n\n[HISTORI ALUMNI SMAN 1 PATI - JALUR SNBP]\n`;
-                systemInstruction += `Berikut adalah daftar kakak kelas yang diterima SNBP (jalur prestasi) di tahun-tahun sebelumnya. Gunakan data ini untuk memberikan motivasi dan analisis peluang siswa.\n`;
+                systemInstruction += `Data berikut adalah FAKTA JUMLAH alumni yang diterima SNBP. Jika ditanya jumlah, WAJIB hitung dari tabel ringkasan ini.\n`;
 
-                // Compress the data string to save tokens: "Year PTN Prodi (Count)"
-                const historySummary = alumniData.map((d: any) => `- ${d.year}: ${d.ptn} - ${d.prodi} (${d.count} siswa)`).join('\n');
-                systemInstruction += historySummary;
-                systemInstruction += `\n\nCONTOH ANALISIS: "Tahun 2024 ada kak kelasmu dari XII MIPA 1 yang diterima di Teknik Sipil UGM, jadi peluangmu terbuka lebar jika nilaimu stabil."\n`;
+                // Pre-calculate statistics to allow AI to read exact numbers easily
+                const stats: Record<string, Record<string, number>> = {};
+
+                alumniData.forEach((d: any) => {
+                    if (!stats[d.ptn]) stats[d.ptn] = {};
+                    if (!stats[d.ptn][d.year]) stats[d.ptn][d.year] = 0;
+                    stats[d.ptn][d.year] += d.count;
+                });
+
+                // Generate Summary Table string
+                let summaryTable = "RINGKASAN STATISTIK DITERIMA PER KAMPUS:\n";
+
+                // Also calculate Total Per Year for global context
+                const totalPerYear: Record<string, number> = {};
+                Object.keys(stats).sort().forEach(ptn => {
+                    const years = stats[ptn];
+                    const total = Object.values(years).reduce((a, b) => a + b, 0);
+                    const detailStr = Object.entries(years)
+                        .sort((a, b) => parseInt(b[0]) - parseInt(a[0])) // Sort DB desc
+                        .map(([y, c]) => {
+                            // Accumulate total per year
+                            if (!totalPerYear[y]) totalPerYear[y] = 0;
+                            totalPerYear[y] += c;
+                            return `${y} (${c})`;
+                        })
+                        .join(', ');
+
+                    summaryTable += `- ${ptn}: TOTAL ${total} siswa. Rincian: ${detailStr}\n`;
+                });
+
+                // Inject Total Per Year
+                const totalYearStr = Object.entries(totalPerYear)
+                    .sort((a, b) => parseInt(b[0]) - parseInt(a[0]))
+                    .map(([y, c]) => `Tahun ${y}: ${c} siswa`)
+                    .join(' | ');
+
+                systemInstruction += `\n[RINGKASAN TOTAL PER TAHUN] (Gunakan ini untuk pertanyaan jumlah per tahun)\n${totalYearStr}\n\n`;
+                systemInstruction += summaryTable;
+                systemInstruction += `\nDETAIL JURUSAN & SISWA (Gunakan untuk mencari nama siswa):\n`;
+
+                // Generate detailed list with names
+                const historyDetails = alumniData.map((d: any) => {
+                    const names = d.details ? d.details.map((det: any) => det.name).join(', ') : '';
+                    return `- ${d.year} | ${d.ptn} | ${d.prodi} | Siswa: ${names}`;
+                }).join('\n');
+
+                systemInstruction += historyDetails;
+
+                systemInstruction += `\n\nATURAN PENTING:\n`;
+                systemInstruction += `1. Jika user tanya "Berapa jumlah...", BACA LANGSUNG dari "RINGKASAN STATISTIK".\n`;
+                systemInstruction += `2. Jika user tanya "Siapa..." atau "Dimana [Nama] diterima...", cari di "DETAIL JURUSAN & SISWA".\n`;
             }
         } catch (error) {
             console.error("Failed to load alumni SNBP data", error);

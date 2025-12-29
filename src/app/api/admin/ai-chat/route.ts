@@ -150,6 +150,71 @@ export async function POST(request: NextRequest) {
         ${SCHOOL_KNOWLEDGE.systemInstruction}
         `
 
+        // --- INJECT SNBP DATA (MATCHING STUDENT AI CAPABILITIES) ---
+        try {
+            const alumniData = require('@/data/alumni-snbp.json');
+
+            if (Array.isArray(alumniData) && alumniData.length > 0) {
+                systemInstruction += `\n\n[HISTORI ALUMNI SMAN 1 PATI - JALUR SNBP]\n`;
+                systemInstruction += `Data berikut adalah FAKTA JUMLAH alumni yang diterima SNBP. Jika ditanya jumlah, WAJIB hitung dari tabel ringkasan ini.\n`;
+
+                // Pre-calculate statistics to allow AI to read exact numbers easily
+                const stats: Record<string, Record<string, number>> = {};
+
+                alumniData.forEach((d: any) => {
+                    if (!stats[d.ptn]) stats[d.ptn] = {};
+                    if (!stats[d.ptn][d.year]) stats[d.ptn][d.year] = 0;
+                    stats[d.ptn][d.year] += d.count;
+                });
+
+                // Generate Summary Table string
+                let summaryTable = "RINGKASAN STATISTIK DITERIMA PER KAMPUS:\n";
+
+                // Also calculate Total Per Year for global context
+                const totalPerYear: Record<string, number> = {};
+
+                Object.keys(stats).sort().forEach(ptn => {
+                    const years = stats[ptn];
+                    const total = Object.values(years).reduce((a, b) => a + b, 0);
+                    const detailStr = Object.entries(years)
+                        .sort((a, b) => parseInt(b[0]) - parseInt(a[0])) // Sort DB desc
+                        .map(([y, c]) => {
+                            // Accumulate total per year
+                            if (!totalPerYear[y]) totalPerYear[y] = 0;
+                            totalPerYear[y] += c;
+                            return `${y} (${c})`;
+                        })
+                        .join(', ');
+
+                    summaryTable += `- ${ptn}: TOTAL ${total} siswa. Rincian: ${detailStr}\n`;
+                });
+
+                // Inject Total Per Year
+                const totalYearStr = Object.entries(totalPerYear)
+                    .sort((a, b) => parseInt(b[0]) - parseInt(a[0]))
+                    .map(([y, c]) => `Tahun ${y}: ${c} siswa`)
+                    .join(' | ');
+
+                systemInstruction += `\n[RINGKASAN TOTAL PER TAHUN] (Gunakan ini untuk pertanyaan jumlah per tahun)\n${totalYearStr}\n\n`;
+                systemInstruction += summaryTable;
+                systemInstruction += `\nDETAIL JURUSAN & SISWA (Gunakan untuk mencari nama siswa):\n`;
+
+                // Generate detailed list with names
+                const historyDetails = alumniData.map((d: any) => {
+                    const names = d.details ? d.details.map((det: any) => det.name).join(', ') : '';
+                    return `- ${d.year} | ${d.ptn} | ${d.prodi} | Siswa: ${names}`;
+                }).join('\n');
+
+                systemInstruction += historyDetails;
+
+                systemInstruction += `\n\nATURAN PENTING SNBP:\n`;
+                systemInstruction += `1. Gunakan data ini untuk membantu Guru menganalisis tren atau menjawab pertanyaan orang tua.\n`;
+                systemInstruction += `2. Jika ditanya jumlah, BACA LANGSUNG dari RINGKASAN.\n`;
+            }
+        } catch (error) {
+            console.error("Failed to load alumni SNBP data for admin", error);
+        }
+
         // Get the generative model
         const model = genAI.getGenerativeModel({
             model: 'gemini-2.0-flash-exp',

@@ -30,7 +30,19 @@ try {
             return key ? row[key] : null;
         };
 
-        const name = getVal(['nama']);
+        let name = getVal(['nama']);
+
+        // Validation: Skip header repetition or empty names
+        if (!name || name.toString().trim() === '' || name.toString().toUpperCase().includes('NAMA')) {
+            return;
+        }
+
+        // Further validation: Ensure there is a 'No' or valid 'Kelas' to avoid footer text
+        // But user might not have 'No' mapped. 
+        // Let's rely on PTN/Prodi existence which we already check.
+        // Also check if 'name' is just an index number or noise
+        if (name.toString().length < 3) return;
+
         const kelas = getVal(['kelas']);
         const ptn = getVal(['ptn', 'univ', 'perguruan']);
         const prodi = getVal(['prodi', 'jurusan', 'program']);
@@ -51,11 +63,32 @@ try {
         }
 
         if (ptn && prodi) {
-            const key = `${year}-${ptn}-${prodi}`;
+            // Normalize PTN Name
+            let ptnNormalized = ptn.toString().trim();
+
+            // Remove quotes and extra spaces
+            ptnNormalized = ptnNormalized.replace(/["“”]/g, '').replace(/\s+/g, ' ');
+
+            // Standardization Map
+            const ptnMap = {
+                'UPN VETERAN YOGYAKARTA': 'UPN "VETERAN" YOGYAKARTA',
+                'UPN VETERAN JATIM': 'UPN "VETERAN" JAWA TIMUR',
+                'UPN VETERAN JAKARTA': 'UPN "VETERAN" JAKARTA',
+                // Add common variations if needed
+            };
+
+            const upperName = ptnNormalized.toUpperCase();
+            if (ptnMap[upperName]) {
+                ptnNormalized = ptnMap[upperName];
+            } else if (upperName.includes('UPN') && upperName.includes('VETERAN') && upperName.includes('YOGYAKARTA')) {
+                ptnNormalized = 'UPN "VETERAN" YOGYAKARTA';
+            }
+
+            const key = `${year}-${ptnNormalized}-${prodi}`;
             if (!processedData[key]) {
                 processedData[key] = {
                     year: parseInt(year) || year,
-                    ptn: ptn.toString().trim(),
+                    ptn: ptnNormalized,
                     prodi: prodi.toString().trim(),
                     count: 0,
                     details: []
@@ -69,7 +102,11 @@ try {
         }
     });
 
-    const output = Object.values(processedData).sort((a, b) => b.year - a.year || a.ptn.localeCompare(b.ptn));
+    // Post-processing to ensure years are integers and consistent
+    const output = Object.values(processedData).map(record => ({
+        ...record,
+        year: parseInt(record.year) || 2024 // Fallback if still invalid
+    })).sort((a, b) => b.year - a.year || a.ptn.localeCompare(b.ptn));
 
     console.log(`Writing ${output.length} aggregated records to ${OUTPUT_PATH}`);
     fs.writeFileSync(OUTPUT_PATH, JSON.stringify(output, null, 2));
