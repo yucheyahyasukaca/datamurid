@@ -390,14 +390,38 @@ export default function AdminDashboard() {
                         </thead>
                         <tbody className="divide-y divide-white/5 text-slate-300">
                             {loading ? (
-                                <tr>
-                                    <td colSpan={8} className="px-6 py-12 text-center text-slate-500">
-                                        <div className="flex justify-center items-center gap-2">
-                                            <svg className="w-5 h-5 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                            Sedang memuat data...
-                                        </div>
-                                    </td>
-                                </tr>
+                                // Skeleton Loader (20 rows to match itemsPerPage)
+                                Array.from({ length: 20 }).map((_, index) => (
+                                    <tr key={`skeleton-${index}`} className="animate-pulse border-b border-white/5">
+                                        <td className="px-6 py-4">
+                                            <div className="h-4 bg-slate-700/50 rounded w-8"></div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="h-4 bg-slate-700/50 rounded w-32"></div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="h-4 bg-slate-700/50 rounded w-16"></div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="h-4 bg-slate-700/50 rounded w-24"></div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="h-4 bg-slate-700/50 rounded w-24"></div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="h-4 bg-slate-700/50 rounded w-8"></div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="h-5 bg-slate-700/50 rounded-full w-20"></div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex justify-center gap-2">
+                                                <div className="h-6 w-6 bg-slate-700/50 rounded"></div>
+                                                <div className="h-6 w-6 bg-slate-700/50 rounded"></div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
                             ) : students.length > 0 ? (
                                 students.map((student, index) => (
                                     <tr key={student.id} className="hover:bg-white/5 transition-colors">
@@ -454,12 +478,29 @@ export default function AdminDashboard() {
                 {/* Mobile View (Cards) */}
                 <div className="md:hidden space-y-4 p-4">
                     {loading ? (
-                        <div className="text-center py-12 text-slate-500">
-                            <div className="flex justify-center items-center gap-2">
-                                <svg className="w-5 h-5 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                Sedang memuat data...
+                        // Mobile Skeleton
+                        Array.from({ length: 5 }).map((_, i) => (
+                            <div key={`mob-skeleton-${i}`} className="bg-slate-800/50 rounded-xl p-4 border border-white/5 space-y-4 animate-pulse">
+                                <div className="flex justify-between items-start">
+                                    <div className="space-y-2 w-full">
+                                        <div className="h-5 bg-slate-700/50 rounded w-1/2"></div>
+                                        <div className="flex gap-2">
+                                            <div className="h-4 bg-slate-700/50 rounded w-16"></div>
+                                            <div className="h-4 bg-slate-700/50 rounded w-8"></div>
+                                        </div>
+                                    </div>
+                                    <div className="w-8 h-8 rounded-full bg-slate-700/50"></div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/5">
+                                    <div className="h-8 bg-slate-700/50 rounded"></div>
+                                    <div className="h-8 bg-slate-700/50 rounded"></div>
+                                </div>
+                                <div className="flex gap-2 pt-2">
+                                    <div className="h-10 bg-slate-700/50 rounded flex-1"></div>
+                                    <div className="h-10 bg-slate-700/50 rounded flex-1"></div>
+                                </div>
                             </div>
-                        </div>
+                        ))
                     ) : students.length > 0 ? (
                         students.map((student) => (
                             <div key={student.id} className="bg-slate-800/50 rounded-xl p-4 border border-white/5 space-y-4">
