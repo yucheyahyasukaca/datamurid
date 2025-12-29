@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { supabase } from '@/utils/supabase'
+import { APP_VERSION } from '@/lib/app-version'
 
 export default function StudentLayout({
     children,
@@ -165,6 +166,7 @@ export default function StudentLayout({
 
                 <footer className="p-6 border-t border-white/5 text-center text-slate-600 text-xs md:text-sm font-medium">
                     <p>&copy; 2025 SMA Negeri 1 Pati. Developed by Tim IT SMAN 1 Pati.</p>
+                    <p className="text-[10px] text-slate-700 mt-1">{APP_VERSION}</p>
                 </footer>
             </div>
         </div>
