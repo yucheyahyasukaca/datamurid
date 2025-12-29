@@ -181,14 +181,16 @@ export default function AIChatPage() {
                             </div>
                             <h2 className="text-2xl font-bold mb-3 text-slate-200">Hai! Aku AI Konsultan SMAN 1 Pati</h2>
                             <p className="text-slate-400 mb-6 max-w-lg mx-auto">
-                                Tanya apa aja yang kamu mau! Bisa tentang pelajaran, info sekolah, atau curhat. Aku siap bantu!
+                                Tanya apa aja yang kamu mau! Bisa tentang pelajaran, info sekolah, konsultasi universitas & jurusan, atau curhat. Aku siap bantu! 🎓
                             </p>
                             <div className="flex flex-wrap gap-2 justify-center max-w-2xl mx-auto">
                                 {[
                                     'Cek kelengkapan data saya',
-                                    'Gimana cara ganti password?',
-                                    'Saya mau ubah alamat rumah',
-                                    'Apa syarat verifikasi data?'
+                                    'Universitas mana yang paling populer?',
+                                    'Berapa nilai rapor untuk masuk kedokteran?',
+                                    'SNBP atau SNBT lebih baik?',
+                                    'Apa jurusan yang paling ketat?',
+                                    'Gimana cara ganti password?'
                                 ].map((suggestion, i) => (
                                     <button
                                         key={i}
@@ -219,17 +221,20 @@ export default function AIChatPage() {
                             <div
                                 className={`max-w-[85%] md:max-w-[75%] px-5 py-4 rounded-2xl ${msg.role === 'user'
                                     ? 'bg-blue-600 text-white rounded-br-md shadow-lg shadow-blue-500/10'
-                                    : 'bg-white/5 border border-white/10 text-slate-100 rounded-bl-md shadow-lg'
+                                    : 'bg-white/5 border border-white/10 text-white rounded-bl-md shadow-lg'
                                     }`}
                             >
-                                <div className={`prose prose-sm md:prose-base dark:prose-invert max-w-none leading-relaxed ${msg.role === 'user' ? 'prose-white' : ''}`}>
+                                <div className={`prose prose-sm md:prose-base ${msg.role === 'assistant' ? 'prose-invert' : ''} max-w-none leading-relaxed`}>
                                     <ReactMarkdown
                                         remarkPlugins={[remarkGfm]}
                                         components={{
                                             a: ({ node, ...props }: any) => <a {...props} target="_blank" rel="noopener noreferrer" className="text-blue-300 hover:text-blue-200 underline" />,
-                                            ul: ({ node, ...props }: any) => <ul {...props} className="list-disc pl-4 space-y-1 my-2" />,
-                                            ol: ({ node, ...props }: any) => <ol {...props} className="list-decimal pl-4 space-y-1 my-2" />,
-                                            li: ({ node, ...props }: any) => <li {...props} className="pl-1" />,
+                                            ul: ({ node, ...props }: any) => <ul {...props} className="list-disc pl-4 space-y-1 my-2 !text-white" />,
+                                            ol: ({ node, ...props }: any) => <ol {...props} className="list-decimal pl-4 space-y-1 my-2 !text-white" />,
+                                            li: ({ node, ...props }: any) => <li {...props} className="pl-1 !text-white" />,
+                                            p: ({ node, ...props }: any) => <p {...props} className="!text-white" />,
+                                            strong: ({ node, ...props }: any) => <strong {...props} className="!text-white font-bold" />,
+                                            em: ({ node, ...props }: any) => <em {...props} className="!text-white" />,
                                         }}
                                     >
                                         {msg.content}

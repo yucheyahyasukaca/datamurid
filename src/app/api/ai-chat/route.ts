@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
             systemInstruction += `Data Kosong: ${studentContext.missingFields?.join(', ') || 'Lengkap'}\n`
             systemInstruction += `Status Verifikasi: ${studentContext.isVerified ? 'Sudah Verifikasi' : 'Belum Verifikasi'}\n`
 
-            if (studentContext.imgFields && studentContext.missingFields.length > 0) {
+            if (studentContext.missingFields && studentContext.missingFields.length > 0) {
                 systemInstruction += `\nTUGAS KAMU: Ingatkan siswa ini untuk melengkapi data: ${studentContext.missingFields.join(', ')}.`
             }
         }
