@@ -41,6 +41,27 @@ export async function POST(request: NextRequest) {
             }
         }
 
+        // LOAD SNBP HISTORY DATA
+        try {
+            const alumniData = require('@/data/alumni-snbp.json');
+
+            // Filter alumni data relevant to the user's query (Simple keyword match)
+            // Or just inject summary if the file is small (for now, assume it's small enough or just inject relevant ones)
+            // Strategy: Inject ALL history for now as it's high value context and likely not huge (< 500 records)
+
+            if (Array.isArray(alumniData) && alumniData.length > 0) {
+                systemInstruction += `\n\n[HISTORI ALUMNI SMAN 1 PATI - JALUR SNBP]\n`;
+                systemInstruction += `Berikut adalah daftar kakak kelas yang diterima SNBP (jalur prestasi) di tahun-tahun sebelumnya. Gunakan data ini untuk memberikan motivasi dan analisis peluang siswa.\n`;
+
+                // Compress the data string to save tokens: "Year PTN Prodi (Count)"
+                const historySummary = alumniData.map((d: any) => `- ${d.year}: ${d.ptn} - ${d.prodi} (${d.count} siswa)`).join('\n');
+                systemInstruction += historySummary;
+                systemInstruction += `\n\nCONTOH ANALISIS: "Tahun 2024 ada kak kelasmu dari XII MIPA 1 yang diterima di Teknik Sipil UGM, jadi peluangmu terbuka lebar jika nilaimu stabil."\n`;
+            }
+        } catch (error) {
+            console.error("Failed to load alumni SNBP data", error);
+        }
+
         // Inject PTN Data
         // Optimization: Only inject if the user asks about universities? 
         // For now, inject always as per request to make it "knowledge AI"

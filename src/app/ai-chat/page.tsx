@@ -194,11 +194,11 @@ export default function AIChatPage() {
                             <div className="flex flex-wrap gap-2 justify-center max-w-2xl mx-auto">
                                 {[
                                     'Cek kelengkapan data saya',
-                                    'Universitas mana yang paling populer?',
-                                    'Berapa nilai rapor untuk masuk kedokteran?',
-                                    'SNBP atau SNBT lebih baik?',
-                                    'Apa jurusan yang paling ketat?',
-                                    'Gimana cara ganti password?'
+                                    'Ada alumni yang diterima di UGM?',
+                                    'Peluang saya masuk Teknik Sipil gimana?',
+                                    'Siapa saja yang lolos SNBP 2025?',
+                                    'Jurusan apa yang paling banyak diminati?',
+                                    'Rekomendasi kampus sesuai nilai saya'
                                 ].map((suggestion, i) => (
                                     <button
                                         key={i}
