@@ -137,16 +137,25 @@ export default function AdminDashboard() {
         setLoading(true)
         try {
             // Fetch ALL data matching filters for export
-            let query = supabase.from('students').select('*')
-            if (debouncedSearchTerm) query = query.or(`nama.ilike.%${debouncedSearchTerm}%,nisn.ilike.%${debouncedSearchTerm}%,nipd.ilike.%${debouncedSearchTerm}%`)
-            if (selectedRombel) query = query.eq('rombel', selectedRombel)
+            // Fetch ALL data matching filters for export via API
+            const params = new URLSearchParams()
+            params.append('limit', '-1') // Fetch all
+            if (debouncedSearchTerm) params.append('search', debouncedSearchTerm)
+            if (selectedRombel) params.append('rombel', selectedRombel)
 
-            const { data, error } = await query
+            const res = await fetch(`/api/admin/students?${params.toString()}`)
+            const result = await res.json()
 
-            if (error) throw error
+            if (!res.ok) throw new Error(result.error || 'Gagal mengambil data untuk export')
+
+            const data = result.data || []
+
             if (!data) return
 
-            const cleanData = data.map(({ is_verified, verified_at, created_at, password, ...rest }) => rest)
+            const cleanData = data.map((student: any) => {
+                const { is_verified, verified_at, created_at, password, ...rest } = student
+                return rest
+            })
 
             const ws = XLSX.utils.json_to_sheet(cleanData)
             const wb = XLSX.utils.book_new()

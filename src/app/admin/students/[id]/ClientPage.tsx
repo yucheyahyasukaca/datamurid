@@ -43,13 +43,11 @@ export default function EditStudentPage() {
             if (!id) return
 
             try {
-                const { data, error } = await supabase
-                    .from('students')
-                    .select('*')
-                    .eq('id', id)
-                    .single()
+                const res = await fetch(`/api/admin/students/${id}`)
+                const data = await res.json()
 
-                if (error) throw error
+                if (!res.ok) throw new Error(data.error || 'Gagal memuat data siswa')
+
                 if (data) {
                     const formattedData = {
                         nama: data.nama || '',
@@ -117,26 +115,14 @@ export default function EditStudentPage() {
                 throw new Error('Nama dan NISN wajib diisi.')
             }
 
-            const { error } = await supabase
-                .from('students')
-                .update(formData)
-                .eq('id', id)
+            const res = await fetch(`/api/admin/students/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            })
 
-            if (error) throw error
-
-            const changes = getChanges(originalData, formData)
-            if (Object.keys(changes).length > 0) {
-                const { data: { user } } = await supabase.auth.getUser()
-                const adminEmail = user?.email || 'unknown'
-
-                await supabase.from('student_logs').insert({
-                    admin_email: adminEmail,
-                    student_name: formData.nama,
-                    student_id: id,
-                    action: 'UPDATE',
-                    changes: changes
-                })
-            }
+            const result = await res.json()
+            if (!res.ok) throw new Error(result.error || 'Gagal menyimpan data')
 
             setOriginalData(formData) // Update original data to match current
             setIsEditing(false) // Switch back to view mode

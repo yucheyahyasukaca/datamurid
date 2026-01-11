@@ -44,7 +44,11 @@ export async function GET(request: Request) {
         const from = (page - 1) * limit
         const to = from + limit - 1
 
-        const { data, error, count } = await query.range(from, to)
+        if (limit > 0) {
+            query = query.range(from, to)
+        }
+
+        const { data, error, count } = await query
 
         if (error) throw error
 
