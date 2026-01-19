@@ -218,6 +218,7 @@ export default function AdminTKAGradesPage() {
             bahasa_indonesia_kategori: grade.bahasa_indonesia_kategori || '',
             bahasa_inggris_nilai: grade.bahasa_inggris_nilai?.toString() || '',
             bahasa_inggris_kategori: grade.bahasa_inggris_kategori || '',
+            total_wajib: grade.total_wajib?.toString() || '',
             mapel_pilihan_1: grade.mapel_pilihan_1 || '',
             mapel_pilihan_1_nilai: grade.mapel_pilihan_1_nilai?.toString() || '',
             mapel_pilihan_1_kategori: grade.mapel_pilihan_1_kategori || '',
