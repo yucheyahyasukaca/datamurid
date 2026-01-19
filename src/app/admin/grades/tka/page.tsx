@@ -331,8 +331,7 @@ export default function AdminTKAGradesPage() {
             const params = new URLSearchParams()
             params.append('limit', '-1')
             if (debouncedSearchTerm) params.append('search', debouncedSearchTerm)
-            if (semesterFilter) params.append('semester', semesterFilter)
-            if (tahunFilter) params.append('tahun_ajaran', tahunFilter)
+            if (kelasFilter) params.append('kelas', kelasFilter)
 
             const res = await fetch(`/api/admin/grades/tka?${params.toString()}`)
             const result = await res.json()
