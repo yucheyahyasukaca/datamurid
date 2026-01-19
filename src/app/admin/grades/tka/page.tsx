@@ -43,10 +43,12 @@ export default function AdminTKAGradesPage() {
     const [searchTerm, setSearchTerm] = useState('')
     const debouncedSearchTerm = useDebounce(searchTerm, 500)
     const [kelasFilter, setKelasFilter] = useState('')
+    const [subjectFilter, setSubjectFilter] = useState('')
 
     // Data State
     const [grades, setGrades] = useState<TKAGrade[]>([])
     const [students, setStudents] = useState<Student[]>([])
+    const [subjects, setSubjects] = useState<string[]>([])
     const [loading, setLoading] = useState(true)
     const [totalGrades, setTotalGrades] = useState(0)
 
@@ -106,14 +108,15 @@ export default function AdminTKAGradesPage() {
 
     useEffect(() => {
         setCurrentPage(1)
-    }, [debouncedSearchTerm, kelasFilter])
+    }, [debouncedSearchTerm, kelasFilter, subjectFilter])
 
     useEffect(() => {
         fetchGrades()
-    }, [currentPage, debouncedSearchTerm, kelasFilter])
+    }, [currentPage, debouncedSearchTerm, kelasFilter, subjectFilter])
 
     useEffect(() => {
         fetchStudents()
+        fetchSubjects()
     }, [])
 
     const fetchGrades = async () => {
@@ -124,6 +127,7 @@ export default function AdminTKAGradesPage() {
             params.append('limit', itemsPerPage.toString())
             if (debouncedSearchTerm) params.append('search', debouncedSearchTerm)
             if (kelasFilter) params.append('kelas', kelasFilter)
+            if (subjectFilter) params.append('mapel', subjectFilter)
 
             const res = await fetch(`/api/admin/grades/tka?${params.toString()}`)
             const result = await res.json()
@@ -148,6 +152,18 @@ export default function AdminTKAGradesPage() {
             }
         } catch (error) {
             console.error('Failed to fetch students:', error)
+        }
+    }
+
+    const fetchSubjects = async () => {
+        try {
+            const res = await fetch('/api/admin/grades/tka/subjects')
+            const result = await res.json()
+            if (res.ok) {
+                setSubjects(result.data || [])
+            }
+        } catch (error) {
+            console.error('Failed to fetch subjects:', error)
         }
     }
 
@@ -332,6 +348,7 @@ export default function AdminTKAGradesPage() {
             params.append('limit', '-1')
             if (debouncedSearchTerm) params.append('search', debouncedSearchTerm)
             if (kelasFilter) params.append('kelas', kelasFilter)
+            if (subjectFilter) params.append('mapel', subjectFilter)
 
             const res = await fetch(`/api/admin/grades/tka?${params.toString()}`)
             const result = await res.json()
@@ -419,8 +436,9 @@ export default function AdminTKAGradesPage() {
             </div>
 
             {/* Search & Filters */}
-            <div className="glass-panel p-4 space-y-4">
-                <div className="relative w-full">
+            {/* Search & Filters */}
+            <div className="glass-panel p-4 flex flex-col md:flex-row gap-4">
+                <div className="relative flex-1">
                     <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                     </svg>
@@ -432,7 +450,7 @@ export default function AdminTKAGradesPage() {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <div className="w-full md:w-64">
+                <div className="w-full md:w-48">
                     <select
                         className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500/50 transition-all"
                         value={kelasFilter}
@@ -444,6 +462,18 @@ export default function AdminTKAGradesPage() {
                             .map(kelas => (
                                 <option key={kelas} value={kelas}>{kelas}</option>
                             ))}
+                    </select>
+                </div>
+                <div className="w-full md:w-48">
+                    <select
+                        className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500/50 transition-all"
+                        value={subjectFilter}
+                        onChange={(e) => setSubjectFilter(e.target.value)}
+                    >
+                        <option value="">Semua Mapel</option>
+                        {subjects.map(subject => (
+                            <option key={subject} value={subject}>{subject}</option>
+                        ))}
                     </select>
                 </div>
             </div>

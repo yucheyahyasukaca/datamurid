@@ -11,7 +11,7 @@ export default function AdminPdssGradesPage() {
                 Manajemen Nilai PDSS
             </h2>
             <p className="text-slate-400 text-lg max-w-md mb-8">
-                Fitur manajemen nilai PDSS sedang dalam tahap pengembangan. Anda akan dapat mengelola data rapor dan prestasi siswa di sini.
+                Fitur manajemen nilai PDSS sedang dalam tahap pengembangan. Anda akan dapat mengelola data Pangkalan Data Sekolah dan Siswa untuk menentukan siswa eligibel untuk SNBP Tahun 2026 di sini.
             </p>
 
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-800/50 border border-white/10 text-slate-400 text-sm">

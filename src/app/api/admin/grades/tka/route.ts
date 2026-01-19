@@ -25,6 +25,7 @@ export async function GET(request: Request) {
         const limit = parseInt(url.searchParams.get('limit') || '20')
         const search = url.searchParams.get('search') || ''
         const kelas = url.searchParams.get('kelas') || ''
+        const mapel = url.searchParams.get('mapel') || ''
 
         const offset = (page - 1) * limit
 
@@ -39,10 +40,21 @@ export async function GET(request: Request) {
 
         // Apply filters
         if (search) {
-            query = query.or(`students.nama.ilike.%${search}%,students.nisn.ilike.%${search}%`)
+            query = query.or(`nama.ilike.%${search}%,nisn.ilike.%${search}%`, { foreignTable: 'students' })
         }
         if (kelas) {
             query = query.eq('students.rombel', kelas)
+        }
+        if (mapel) {
+            if (mapel === 'Matematika') {
+                query = query.not('matematika_nilai', 'is', null)
+            } else if (mapel === 'Bahasa Indonesia') {
+                query = query.not('bahasa_indonesia_nilai', 'is', null)
+            } else if (mapel === 'Bahasa Inggris') {
+                query = query.not('bahasa_inggris_nilai', 'is', null)
+            } else {
+                query = query.or(`mapel_pilihan_1.eq.${mapel},mapel_pilihan_2.eq.${mapel}`)
+            }
         }
 
         // Pagination
