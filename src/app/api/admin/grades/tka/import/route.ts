@@ -3,6 +3,8 @@ import { supabaseAdmin } from '@/utils/supabase-admin'
 import { verifyToken } from '@/lib/auth'
 import * as XLSX from 'xlsx'
 
+export const runtime = 'edge'
+
 export async function POST(request: Request) {
     try {
         // Verify admin token from cookie
