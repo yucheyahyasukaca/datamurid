@@ -38,7 +38,6 @@ export async function GET(request: Request) {
             .order('created_at', { ascending: false })
 
         if (search) {
-            // Updated query syntax to match tka/route.ts pattern for relation search
             query = query.or(`nama.ilike.%${search}%,nisn.ilike.%${search}%`, { foreignTable: 'students' })
         }
 

@@ -23,10 +23,12 @@ export async function GET(request: Request) {
         }
 
         // Fetch PDSS grade for this student
+        // IMPORTANT: Only select if is_published is TRUE (handled by query or RLS, but explicit here is safer)
         const { data: pdssGrade, error: gradeError } = await supabaseAdmin
             .from('pdss_grades')
             .select('*')
             .eq('student_id', student.id)
+            .eq('is_published', true) // Only published grades
             .order('created_at', { ascending: false })
             .limit(1)
             .maybeSingle()

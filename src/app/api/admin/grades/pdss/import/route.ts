@@ -41,10 +41,12 @@ export async function POST(request: Request) {
         if (studentsError) throw studentsError
 
         const nisnToIdMap = new Map(students?.map(s => [s.nisn, s.id]) || [])
-        // Optional: helper to find by name loosely if strict nisn fails? 
+        // Optional: helper to find by name loosely if strict nisn fails
         const nameToIdMap = new Map(students?.map(s => [s.nama.toLowerCase(), s.id]) || [])
 
         let successCount = 0
+        let insertedCount = 0
+        let updatedCount = 0
         let failedCount = 0
         const errors: any[] = []
 
@@ -65,16 +67,37 @@ export async function POST(request: Request) {
                     throw new Error(`Siswa tidak ditemukan: ${row['Nama'] || row['NISN']}`)
                 }
 
+                // Map excel status to valid ENUM
+                let status = 'Eligible'
+                const rawStatus = row['Status'] ? row['Status'].toString().toLowerCase() : ''
+                if (rawStatus.includes('tidak')) status = 'Tidak Eligible'
+                else if (rawStatus.includes('mengundurkan')) status = 'Mengundurkan Diri'
+                else if (rawStatus.includes('eligible')) status = 'Eligible'
+
+                // Helper to safely parse numbers, treating '-' as null
+                const safeParseNumber = (val: any) => {
+                    if (val === null || val === undefined) return null;
+                    if (typeof val === 'string') {
+                        const clean = val.trim();
+                        if (clean === '-' || clean === '') return null;
+                        const num = parseFloat(clean.replace(',', '.')); // Handle comma decimals if any
+                        return isNaN(num) ? null : num;
+                    }
+                    return typeof val === 'number' ? val : null;
+                }
+
                 const payloadData = {
                     student_id: studentId,
-                    total_semua_mapel: row['Jumlah Nilai Semua Mapel (SMT 1 - 5)'] || null,
-                    total_3_mapel_utama: row['Jumlah 3 Mapel Utama (B.Indo, Mat Umum, B.Ing)'] || null,
-                    total_mapel_pilihan: row['Jumlah Mapel Pilihan (SMT 3-5)'] || null,
-                    peringkat: row['Peringkat di PDSS'] || null,
+                    total_semua_mapel: safeParseNumber(row['Jumlah Nilai Semua Mapel (SMT 1 - 5)'] || row['Jumlah Nilai Semua Mapel (SMT 1-5)']),
+                    total_3_mapel_utama: safeParseNumber(row['Jumlah 3 Mapel Utama (B.Indo, Mat Umum, B.Ing)']),
+                    total_mapel_pilihan: safeParseNumber(row['Jumlah Mapel Pilihan (SMT 3-5)']),
+                    peringkat: safeParseNumber(row['Peringkat di PDSS']),
+                    status: status,
+                    is_published: false, // Default to hidden on import
 
                     tahun_ajaran: row['Tahun Ajaran'] || '2024/2025',
-                    semester: row['Semester'] || null,
-                    keterangan: row['Keterangan'] || null,
+                    semester: '1-5',
+                    keterangan: row['Keterangan (Pesan/Petunjuk)'] || row['Keterangan'] || null,
                     created_by: payload.userId
                 }
 
@@ -91,10 +114,12 @@ export async function POST(request: Request) {
                         .from('pdss_grades')
                         .update(payloadData)
                         .eq('id', existing.id)
+                    updatedCount++
                 } else {
                     await supabaseAdmin
                         .from('pdss_grades')
                         .insert(payloadData)
+                    insertedCount++
                 }
 
                 successCount++
@@ -106,9 +131,11 @@ export async function POST(request: Request) {
 
         return NextResponse.json({
             success: successCount,
+            inserted: insertedCount,
+            updated: updatedCount,
             failed: failedCount,
             errors,
-            message: `Import processed. Success: ${successCount}, Failed: ${failedCount}`
+            message: `Import processed. Created: ${insertedCount}, Updated: ${updatedCount}, Failed: ${failedCount}`
         })
 
     } catch (error: any) {
