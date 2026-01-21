@@ -187,57 +187,16 @@ export default function StudentPDSSGradesPage() {
                 </div>
             </div>
 
-            {/* Keterangan / Message Alert */}
-            {pdssData.keterangan && (
-                <div className={`rounded-xl p-4 border ${pdssData.status === 'Eligible' ? 'bg-green-500/10 border-green-500/20 text-green-200' : 'bg-blue-500/10 border-blue-500/20 text-blue-200'} flex items-start gap-3`}>
-                    <svg className="w-5 h-5 mt-0.5 flex-shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <div>
-                        <p className="text-xs font-bold uppercase tracking-wider opacity-70 mb-1">Pesan / Catatan Sekolah</p>
-                        <p className="text-sm font-medium leading-relaxed">{pdssData.keterangan}</p>
-                    </div>
-                </div>
-            )}
-
-            {/* Important Note about PDSS Ranking */}
-            <div className="rounded-xl p-4 border bg-amber-500/10 border-amber-500/20 text-amber-200 flex items-start gap-3">
-                <svg className="w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
+            {/* Total Score Card */}
+            <div className="glass-panel p-4 border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-transparent flex items-center justify-between group hover:border-emerald-500/50 transition-all">
                 <div>
-                    <p className="text-xs font-bold uppercase tracking-wider opacity-90 mb-1">Catatan Penting</p>
-                    <p className="text-sm font-medium leading-relaxed">
-                        Peringkat PDSS berdasarkan jumlah nilai yang diunggah di PDSS tanpa menggunakan nilai mapel Bahasa Daerah semester 1 s.d. 5.
-                    </p>
+                    <p className="text-emerald-400 font-bold mb-0.5 group-hover:text-emerald-300 transition-colors text-sm">Total Nilai</p>
+                    <p className="text-[10px] text-slate-400">Semua Mata Pelajaran</p>
                 </div>
-            </div>
-
-            {/* Top Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Ranking Card */}
-                <div className="glass-panel p-4 border border-yellow-500/30 bg-gradient-to-br from-yellow-500/10 to-transparent flex items-center justify-between group hover:border-yellow-500/50 transition-all">
-                    <div>
-                        <p className="text-yellow-400 font-bold group-hover:text-yellow-300 transition-colors text-sm">Peringkat PDSS</p>
-                    </div>
-                    <div>
-                        <span className="text-4xl font-black text-white drop-shadow-lg">
-                            #{pdssData.peringkat || '-'}
-                        </span>
-                    </div>
-                </div>
-
-                {/* Total Score Card */}
-                <div className="glass-panel p-4 border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-transparent flex items-center justify-between group hover:border-emerald-500/50 transition-all">
-                    <div>
-                        <p className="text-emerald-400 font-bold mb-0.5 group-hover:text-emerald-300 transition-colors text-sm">Total Nilai</p>
-                        <p className="text-[10px] text-slate-400">Semua Mata Pelajaran</p>
-                    </div>
-                    <div>
-                        <span className="text-4xl font-bold text-white">
-                            {pdssData.total_semua_mapel?.toFixed(1) || '-'}
-                        </span>
-                    </div>
+                <div>
+                    <span className="text-4xl font-bold text-white">
+                        {pdssData.total_semua_mapel?.toFixed(1) || '-'}
+                    </span>
                 </div>
             </div>
 
@@ -290,6 +249,44 @@ export default function StudentPDSSGradesPage() {
                             {pdssData.total_mapel_pilihan?.toFixed(1) || '-'}
                         </span>
                     </div>
+                </div>
+            </div>
+
+            {/* Keterangan / Message Alert */}
+            {pdssData.keterangan && (
+                <div className={`rounded-xl p-4 border ${pdssData.status === 'Eligible' ? 'bg-green-500/10 border-green-500/20 text-green-200' : 'bg-blue-500/10 border-blue-500/20 text-blue-200'} flex items-start gap-3`}>
+                    <svg className="w-5 h-5 mt-0.5 flex-shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div>
+                        <p className="text-xs font-bold uppercase tracking-wider opacity-70 mb-1">Pesan / Catatan Sekolah</p>
+                        <p className="text-sm font-medium leading-relaxed">{pdssData.keterangan}</p>
+                    </div>
+                </div>
+            )}
+
+            {/* Ranking Card */}
+            <div className="glass-panel p-4 border border-yellow-500/30 bg-gradient-to-br from-yellow-500/10 to-transparent flex items-center justify-between group hover:border-yellow-500/50 transition-all">
+                <div>
+                    <p className="text-yellow-400 font-bold group-hover:text-yellow-300 transition-colors text-sm">Peringkat PDSS</p>
+                </div>
+                <div>
+                    <span className="text-4xl font-black text-white drop-shadow-lg">
+                        #{pdssData.peringkat || '-'}
+                    </span>
+                </div>
+            </div>
+
+            {/* Important Note about PDSS Ranking */}
+            <div className="rounded-xl p-4 border bg-amber-500/10 border-amber-500/20 text-amber-200 flex items-start gap-3">
+                <svg className="w-5 h-5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div>
+                    <p className="text-xs font-bold uppercase tracking-wider opacity-90 mb-1">Catatan Penting</p>
+                    <p className="text-sm font-medium leading-relaxed">
+                        Peringkat PDSS berdasarkan jumlah nilai yang diunggah di PDSS tanpa menggunakan nilai mapel Bahasa Daerah semester 1 s.d. 5.
+                    </p>
                 </div>
             </div>
 
