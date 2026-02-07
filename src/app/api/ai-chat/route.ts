@@ -42,10 +42,11 @@ export async function POST(request: NextRequest) {
         let systemInstruction = SCHOOL_KNOWLEDGE.systemInstruction
 
         if (studentContext) {
-            systemInstruction += `\n\n[KONTEKS SISWA LIVE]\n`
-            systemInstruction += `Nama: ${studentContext.name || 'Siswa'}\n`
+            systemInstruction += `\n\n[KONTEKS SISWA LIVE - KAMU WAJIB TAHU INI]\n`
+            systemInstruction += `Nama Siswa: ${studentContext.name || 'Siswa'}\n`
             systemInstruction += `Data Kosong: ${studentContext.missingFields?.join(', ') || 'Lengkap'}\n`
             systemInstruction += `Status Verifikasi: ${studentContext.isVerified ? 'Sudah Verifikasi' : 'Belum Verifikasi'}\n`
+            systemInstruction += `INSTRUKSI: JANGAN PERNAH bilang "saya tidak punya akses data". Kamu PUNYA data di atas. Gunakan itu.\n`
 
             if (studentContext.missingFields && studentContext.missingFields.length > 0) {
                 systemInstruction += `\nTUGAS KAMU: Ingatkan siswa ini untuk melengkapi data: ${studentContext.missingFields.join(', ')}.`
@@ -209,9 +210,10 @@ export async function POST(request: NextRequest) {
         }
 
         // Get the generative model with system instruction
-        // Use Gemini 3.0 Flash Preview (Verified Working)
+        // Use Gemini 3.0 Pro Preview (Better reasoning to handle context and persona)
         const model = genAI.getGenerativeModel({
-            model: 'gemini-3-flash-preview',
+            model: 'gemini-3-pro-preview',
+            systemInstruction: systemInstruction,
             generationConfig: {
                 temperature: 0.7,
                 topK: 40,
