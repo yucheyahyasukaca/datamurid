@@ -221,13 +221,13 @@ export async function POST(request: NextRequest) {
 
         // Get the generative model
         const model = genAI.getGenerativeModel({
-            model: 'gemini-2.0-flash-exp',
+            model: 'gemini-2.0-flash',
             systemInstruction: systemInstruction,
             generationConfig: {
                 temperature: 0.4, // Lower temperature for more factual answers
                 topK: 40,
                 topP: 0.95,
-                maxOutputTokens: 2048,
+                maxOutputTokens: 8192,
             }
         })
 

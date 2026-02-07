@@ -212,13 +212,13 @@ export async function POST(request: NextRequest) {
         // Get the generative model with system instruction
         // Use Gemini 3.0 Pro Preview (Better reasoning to handle context and persona)
         const model = genAI.getGenerativeModel({
-            model: 'gemini-3-pro-preview',
+            model: 'gemini-2.0-flash',
             systemInstruction: systemInstruction,
             generationConfig: {
                 temperature: 0.7,
                 topK: 40,
                 topP: 0.95,
-                maxOutputTokens: 1024,
+                maxOutputTokens: 8192,
             }
         })
 
