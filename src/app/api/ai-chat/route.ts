@@ -209,9 +209,9 @@ export async function POST(request: NextRequest) {
         }
 
         // Get the generative model with system instruction
+        // Use Gemini 3.0 Flash Preview (Verified Working)
         const model = genAI.getGenerativeModel({
-            model: 'gemini-2.0-flash-exp', // Updated to 2.0 Flash as requested
-            systemInstruction: systemInstruction,
+            model: 'gemini-3-flash-preview',
             generationConfig: {
                 temperature: 0.7,
                 topK: 40,
@@ -252,14 +252,17 @@ export async function POST(request: NextRequest) {
         console.error('AI Chat Error:', error)
         console.error('Error details:', {
             message: error.message,
-            model: 'gemini-2.0-flash-exp'
+            model: 'gemini-1.5-flash',
+            stack: error.stack
         })
 
         // Fallback error handling for model availability
         let errorMessage = 'Maaf, terjadi kesalahan saat memproses permintaan kamu.';
 
         if (error.message?.includes('not found') || error.message?.includes('404')) {
-            errorMessage = 'Model AI sedang sibuk atau tidak tersedia. Coba lagi nanti ya!';
+            errorMessage = 'Model AI sedang sibuk atau konfigurasi API Key belum sesuai. Silakan coba lagi nanti!';
+        } else if (error.message?.includes('API key not valid') || error.message?.includes('400')) {
+            errorMessage = 'Konfigurasi API Key tidak valid. Mohon hubungi admin.';
         }
 
         return NextResponse.json(

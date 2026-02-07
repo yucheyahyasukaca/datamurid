@@ -1,0 +1,54 @@
+Starting test at 2026-02-07T11:34:36.295Z
+
+Testing model: gemini-1.5-flash
+FAILED: gemini-1.5-flash
+Error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent: [404 Not Found] models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+
+Testing model: gemini-1.5-flash-001
+FAILED: gemini-1.5-flash-001
+Error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-001:generateContent: [404 Not Found] models/gemini-1.5-flash-001 is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+
+Testing model: gemini-1.5-flash-8b
+FAILED: gemini-1.5-flash-8b
+Error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent: [404 Not Found] models/gemini-1.5-flash-8b is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+
+Testing model: gemini-1.5-pro
+FAILED: gemini-1.5-pro
+Error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent: [404 Not Found] models/gemini-1.5-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+
+Testing model: gemini-1.5-pro-001
+FAILED: gemini-1.5-pro-001
+Error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-001:generateContent: [404 Not Found] models/gemini-1.5-pro-001 is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+
+Testing model: gemini-pro
+FAILED: gemini-pro
+Error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent: [404 Not Found] models/gemini-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+
+Testing model: gemini-1.0-pro
+FAILED: gemini-1.0-pro
+Error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro:generateContent: [404 Not Found] models/gemini-1.0-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+
+Test complete.
+Starting test at 2026-02-07T11:36:26.572Z
+
+Testing model: gemini-2.0-flash-exp
+FAILED: gemini-2.0-flash-exp
+Error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent: [404 Not Found] models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+
+Testing model: gemini-1.5-flash
+FAILED: gemini-1.5-flash
+Error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent: [404 Not Found] models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+
+Testing model: gemini-1.5-pro
+FAILED: gemini-1.5-pro
+Error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent: [404 Not Found] models/gemini-1.5-pro is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+
+Testing model: gemini-3-pro-preview
+SUCCESS: gemini-3-pro-preview
+Response: OK
+
+Testing model: gemini-3-flash-preview
+SUCCESS: gemini-3-flash-preview
+Response: OK
+
+Test complete.
