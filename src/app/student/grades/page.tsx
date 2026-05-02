@@ -35,6 +35,21 @@ export default function StudentGradesMenuPage() {
             bgGlow: 'bg-purple-500/10',
             borderColor: 'border-purple-500/20',
             hoverGlow: 'group-hover:bg-purple-500/20'
+        },
+        {
+            id: 'kelulusan',
+            title: 'Info Kelulusan',
+            subtitle: 'Pengumuman Kelulusan',
+            description: 'Lihat status kelulusan kamu',
+            icon: (
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                </svg>
+            ),
+            gradient: 'from-amber-500 to-orange-500',
+            bgGlow: 'bg-amber-500/10',
+            borderColor: 'border-amber-500/20',
+            hoverGlow: 'group-hover:bg-amber-500/20'
         }
     ]
 
@@ -51,7 +66,7 @@ export default function StudentGradesMenuPage() {
             </div>
 
             {/* Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
                 {gradeTypes.map((type) => (
                     <button
                         key={type.id}
@@ -96,7 +111,7 @@ export default function StudentGradesMenuPage() {
             </div>
 
             {/* Info Card */}
-            <div className="max-w-4xl mx-auto glass-panel p-6 rounded-xl border border-white/5">
+            <div className="max-w-5xl mx-auto glass-panel p-6 rounded-xl border border-white/5">
                 <div className="flex items-start gap-4">
                     <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0">
                         <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -106,7 +121,7 @@ export default function StudentGradesMenuPage() {
                     <div>
                         <h4 className="text-white font-semibold mb-1">Informasi</h4>
                         <p className="text-slate-400 text-sm leading-relaxed">
-                            Nilai TKA adalah hasil tes kemampuan akademik yang kamu ikuti. Nilai PDSS mencakup rapor siswa untuk SNBP 2026.
+                            Nilai TKA adalah hasil tes kemampuan akademik yang kamu ikuti. Nilai PDSS mencakup rapor siswa untuk SNBP 2026. Info Kelulusan menampilkan status kelulusan resmi kamu.
                         </p>
                     </div>
                 </div>
