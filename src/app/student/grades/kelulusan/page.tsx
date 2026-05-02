@@ -179,6 +179,25 @@ export default function StudentKelulusanPage() {
                 <p className="text-slate-400 text-sm">Hasil pengumuman kelulusan resmi</p>
             </div>
 
+            {/* Student Details */}
+            <div className="glass-panel p-6 border border-white/10 space-y-4">
+                <h3 className="text-white font-bold text-lg mb-4">Data Siswa</h3>
+                {[
+                    { label: 'Nama', value: record.nama },
+                    { label: 'Kelas', value: record.kelas },
+                    { label: 'No. Peserta', value: record.nisn },
+                    { label: 'No. Ujian', value: record.no_ujian },
+                    { label: 'Tanggal Lahir', value: record.tanggal_lahir },
+                    { label: 'Kota', value: record.kota },
+                    { label: 'Agama', value: record.agama },
+                ].map(({ label, value }) => (
+                    <div key={label} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
+                        <span className="text-slate-400 text-sm">{label}</span>
+                        <span className="text-white font-medium text-sm text-right">{value || '-'}</span>
+                    </div>
+                ))}
+            </div>
+
             {/* Status Badge */}
             <div className={`glass-panel p-8 text-center border-2 ${
                 isLulus ? 'border-green-500/40 bg-green-500/5' : 'border-red-500/40 bg-red-500/5'
@@ -202,25 +221,6 @@ export default function StudentKelulusanPage() {
                 <p className={`text-sm font-medium ${isLulus ? 'text-green-300' : 'text-red-300'}`}>
                     {isLulus ? 'Selamat! Anda dinyatakan lulus.' : 'Anda dinyatakan tidak lulus.'}
                 </p>
-            </div>
-
-            {/* Student Details */}
-            <div className="glass-panel p-6 border border-white/10 space-y-4">
-                <h3 className="text-white font-bold text-lg mb-4">Data Siswa</h3>
-                {[
-                    { label: 'Nama', value: record.nama },
-                    { label: 'Kelas', value: record.kelas },
-                    { label: 'No. Peserta', value: record.nisn },
-                    { label: 'No. Ujian', value: record.no_ujian },
-                    { label: 'Tanggal Lahir', value: record.tanggal_lahir },
-                    { label: 'Kota', value: record.kota },
-                    { label: 'Agama', value: record.agama },
-                ].map(({ label, value }) => (
-                    <div key={label} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0">
-                        <span className="text-slate-400 text-sm">{label}</span>
-                        <span className="text-white font-medium text-sm text-right">{value || '-'}</span>
-                    </div>
-                ))}
             </div>
         </div>
     )
