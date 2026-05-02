@@ -61,3 +61,59 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: error.message }, { status: 500 })
     }
 }
+
+export async function PUT(request: Request) {
+    try {
+        const cookieHeader = request.headers.get('cookie') || ''
+        const raw = cookieHeader.split(';').find(c => c.trim().startsWith('auth_token='))
+        const token = raw ? raw.trim().slice('auth_token='.length) : undefined
+        if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        const payload = await verifyToken(token)
+        if (!payload || payload.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+        const body = await request.json()
+        const { id, nisn, nama, tanggal_lahir, no_ujian, kota, agama, kelas, status } = body
+        if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 })
+        if (!nisn) return NextResponse.json({ error: 'nisn is required' }, { status: 400 })
+        if (status !== 'LULUS' && status !== 'TIDAK LULUS') {
+            return NextResponse.json({ error: 'status harus LULUS atau TIDAK LULUS' }, { status: 400 })
+        }
+
+        const { data, error } = await supabaseAdmin
+            .from('graduation_records')
+            .update({ nisn, nama, tanggal_lahir, no_ujian, kota, agama, kelas, status })
+            .eq('id', id)
+            .select()
+            .single()
+
+        if (error) throw error
+        return NextResponse.json({ data })
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+}
+
+export async function DELETE(request: Request) {
+    try {
+        const cookieHeader = request.headers.get('cookie') || ''
+        const raw = cookieHeader.split(';').find(c => c.trim().startsWith('auth_token='))
+        const token = raw ? raw.trim().slice('auth_token='.length) : undefined
+        if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        const payload = await verifyToken(token)
+        if (!payload || payload.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+        const url = new URL(request.url)
+        const id = url.searchParams.get('id')
+        if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 })
+
+        const { error } = await supabaseAdmin
+            .from('graduation_records')
+            .delete()
+            .eq('id', id)
+
+        if (error) throw error
+        return NextResponse.json({ success: true })
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+}

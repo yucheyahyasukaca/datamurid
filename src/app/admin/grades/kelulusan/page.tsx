@@ -36,6 +36,12 @@ export default function AdminKelulusanPage() {
     const [importing, setImporting] = useState(false)
     const [importResult, setImportResult] = useState<any>(null)
 
+    const [editRecord, setEditRecord] = useState<GraduationRecord | null>(null)
+    const [editForm, setEditForm] = useState<Partial<GraduationRecord>>({})
+    const [saving, setSaving] = useState(false)
+    const [deleteTarget, setDeleteTarget] = useState<GraduationRecord | null>(null)
+    const [deleting, setDeleting] = useState(false)
+
     const [notification, setNotification] = useState({
         show: false,
         type: 'success' as 'success' | 'error',
@@ -157,6 +163,49 @@ export default function AdminKelulusanPage() {
         }
     }
 
+    const openEdit = (record: GraduationRecord) => {
+        setEditRecord(record)
+        setEditForm({ ...record })
+    }
+
+    const handleSaveEdit = async () => {
+        if (!editRecord) return
+        setSaving(true)
+        try {
+            const res = await fetch('/api/admin/grades/kelulusan', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...editForm, id: editRecord.id })
+            })
+            const result = await res.json()
+            if (!res.ok) throw new Error(result.error)
+            setEditRecord(null)
+            showNotification('success', 'Data berhasil diperbarui!')
+            fetchRecords()
+        } catch (error: any) {
+            showNotification('error', error.message)
+        } finally {
+            setSaving(false)
+        }
+    }
+
+    const handleDelete = async () => {
+        if (!deleteTarget) return
+        setDeleting(true)
+        try {
+            const res = await fetch(`/api/admin/grades/kelulusan?id=${deleteTarget.id}`, { method: 'DELETE' })
+            const result = await res.json()
+            if (!res.ok) throw new Error(result.error)
+            setDeleteTarget(null)
+            showNotification('success', 'Data berhasil dihapus!')
+            fetchRecords()
+        } catch (error: any) {
+            showNotification('error', error.message)
+        } finally {
+            setDeleting(false)
+        }
+    }
+
     const totalPages = Math.ceil(total / itemsPerPage)
     const releaseStatus = getReleaseStatus()
     const kelasOptions = Array.from(new Set(records.map(r => r.kelas).filter(Boolean))).sort() as string[]
@@ -266,13 +315,14 @@ export default function AdminKelulusanPage() {
                                 <th className="px-4 py-4">No. Ujian</th>
                                 <th className="px-4 py-4">Kelas</th>
                                 <th className="px-4 py-4">Status</th>
+                                <th className="px-4 py-4">Aksi</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
                             {loading ? (
                                 Array.from({ length: 10 }).map((_, i) => (
                                     <tr key={i} className="animate-pulse">
-                                        {Array.from({ length: 6 }).map((_, j) => (
+                                        {Array.from({ length: 7 }).map((_, j) => (
                                             <td key={j} className="px-4 py-4">
                                                 <div className="h-4 bg-slate-700/50 rounded w-full"></div>
                                             </td>
@@ -296,11 +346,29 @@ export default function AdminKelulusanPage() {
                                                 {record.status}
                                             </span>
                                         </td>
+                                        <td className="px-4 py-4">
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => openEdit(record)}
+                                                    className="p-1.5 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 transition-colors"
+                                                    title="Edit"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                                </button>
+                                                <button
+                                                    onClick={() => setDeleteTarget(record)}
+                                                    className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors"
+                                                    title="Hapus"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                </button>
+                                            </div>
+                                        </td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                                    <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
                                         Belum ada data kelulusan. Import Excel untuk memulai.
                                     </td>
                                 </tr>
@@ -337,6 +405,84 @@ export default function AdminKelulusanPage() {
                     </div>
                 )}
             </div>
+
+            {/* Edit Modal */}
+            {editRecord && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                    <div className="glass-panel w-full max-w-lg p-6 shadow-2xl relative border border-white/10">
+                        <button onClick={() => setEditRecord(null)} className="absolute top-4 right-4 text-slate-400 hover:text-white">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                        <h3 className="text-xl font-bold text-white mb-6">Edit Data Kelulusan</h3>
+                        <div className="space-y-4">
+                            {([
+                                { key: 'nisn', label: 'NISN (No. Peserta)', required: true },
+                                { key: 'nama', label: 'Nama' },
+                                { key: 'tanggal_lahir', label: 'Tanggal Lahir' },
+                                { key: 'no_ujian', label: 'No. Ujian' },
+                                { key: 'kota', label: 'Kota' },
+                                { key: 'agama', label: 'Agama' },
+                                { key: 'kelas', label: 'Kelas' },
+                            ] as { key: keyof GraduationRecord; label: string; required?: boolean }[]).map(({ key, label, required }) => (
+                                <div key={key}>
+                                    <label className="block text-xs font-semibold text-slate-400 mb-1">{label}{required && <span className="text-red-400 ml-1">*</span>}</label>
+                                    <input
+                                        type="text"
+                                        value={(editForm[key] as string) ?? ''}
+                                        onChange={(e) => setEditForm(f => ({ ...f, [key]: e.target.value }))}
+                                        className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-amber-500/50 transition-all text-sm"
+                                    />
+                                </div>
+                            ))}
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-400 mb-1">Status <span className="text-red-400">*</span></label>
+                                <select
+                                    value={editForm.status ?? 'LULUS'}
+                                    onChange={(e) => setEditForm(f => ({ ...f, status: e.target.value as 'LULUS' | 'TIDAK LULUS' }))}
+                                    className="w-full bg-slate-900/50 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-amber-500/50 transition-all text-sm"
+                                >
+                                    <option value="LULUS">LULUS</option>
+                                    <option value="TIDAK LULUS">TIDAK LULUS</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div className="flex gap-3 mt-6">
+                            <button onClick={() => setEditRecord(null)} className="flex-1 py-2.5 rounded-xl font-semibold text-slate-300 hover:text-white hover:bg-white/10 transition-all border border-white/10">Batal</button>
+                            <button
+                                onClick={handleSaveEdit}
+                                disabled={saving || !editForm.nisn}
+                                className="flex-1 py-2.5 rounded-xl font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {saving ? 'Menyimpan...' : 'Simpan'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {deleteTarget && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                    <div className="glass-panel w-full max-w-sm p-6 shadow-2xl border border-red-500/20">
+                        <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-4">
+                            <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        </div>
+                        <h3 className="text-lg font-bold text-white text-center mb-2">Hapus Data</h3>
+                        <p className="text-slate-400 text-sm text-center mb-1">Yakin ingin menghapus data berikut?</p>
+                        <p className="text-white font-semibold text-center mb-6">{deleteTarget.nama || deleteTarget.nisn}</p>
+                        <div className="flex gap-3">
+                            <button onClick={() => setDeleteTarget(null)} className="flex-1 py-2.5 rounded-xl font-semibold text-slate-300 hover:text-white hover:bg-white/10 transition-all border border-white/10">Batal</button>
+                            <button
+                                onClick={handleDelete}
+                                disabled={deleting}
+                                className="flex-1 py-2.5 rounded-xl font-bold text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {deleting ? 'Menghapus...' : 'Hapus'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Import Modal */}
             {showImportModal && (
