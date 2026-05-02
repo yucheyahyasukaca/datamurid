@@ -1,10 +1,11 @@
 -- supabase_kelulusan_schema.sql
--- Jalankan di Supabase SQL Editor
+-- Prasyarat: supabase_schema.sql harus dijalankan terlebih dahulu
+-- (mendefinisikan is_admin(), uuid-ossp extension, dan tabel profiles/students)
 
 -- 1. Tabel graduation_records
 create table if not exists public.graduation_records (
-  id            uuid default uuid_generate_v4() primary key,
-  nisn          text not null,
+  id            uuid default gen_random_uuid() primary key,
+  nisn          text not null unique,
   nama          text,
   tanggal_lahir text,
   no_ujian      text,
@@ -22,18 +23,21 @@ create table if not exists public.app_settings (
   updated_at timestamptz default now()
 );
 
--- 3. Enable RLS
+-- 3. Index untuk lookup cepat by NISN
+create index if not exists idx_graduation_records_nisn on public.graduation_records(nisn);
+
+-- 4. Enable RLS
 alter table public.graduation_records enable row level security;
 alter table public.app_settings enable row level security;
 
--- 4. Policies graduation_records
+-- 5. Policies graduation_records
 create policy "Admins full access graduation_records" on public.graduation_records
   for all using (is_admin());
 
 create policy "Anyone can read graduation_records" on public.graduation_records
   for select using (true);
 
--- 5. Policies app_settings
+-- 6. Policies app_settings
 create policy "Admins full access app_settings" on public.app_settings
   for all using (is_admin());
 
