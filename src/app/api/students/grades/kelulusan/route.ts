@@ -8,12 +8,16 @@ export const runtime = 'edge'
 export async function GET(request: Request) {
     try {
         const cookieHeader = request.headers.get('cookie') || ''
-        const token = cookieHeader.split(';').find(c => c.trim().startsWith('auth_token='))?.split('=')[1]
+        const raw = cookieHeader.split(';').find(c => c.trim().startsWith('auth_token='))
+        const token = raw ? raw.trim().slice('auth_token='.length) : undefined
         if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         const payload = await verifyToken(token)
         if (!payload || payload.role !== 'student') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-        const nisn = payload.nisn as string
+        const nisn = payload.nisn
+        if (typeof nisn !== 'string' || !nisn) {
+            return NextResponse.json({ error: 'Invalid token: nisn missing' }, { status: 401 })
+        }
 
         // Ambil waktu rilis
         const { data: setting } = await supabaseAdmin
@@ -38,6 +42,7 @@ export async function GET(request: Request) {
 
         return NextResponse.json({ releaseTime, isReleased: true, record: record || null })
     } catch (error: any) {
+        console.error('Student kelulusan GET error:', error)
         return NextResponse.json({ error: error.message }, { status: 500 })
     }
 }

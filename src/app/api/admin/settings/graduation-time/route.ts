@@ -10,7 +10,8 @@ const SETTING_KEY = 'graduation_release_time'
 export async function GET(request: Request) {
     try {
         const cookieHeader = request.headers.get('cookie') || ''
-        const token = cookieHeader.split(';').find(c => c.trim().startsWith('auth_token='))?.split('=')[1]
+        const raw = cookieHeader.split(';').find(c => c.trim().startsWith('auth_token='))
+        const token = raw ? raw.trim().slice('auth_token='.length) : undefined
         if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         const payload = await verifyToken(token)
         if (!payload || payload.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -23,6 +24,7 @@ export async function GET(request: Request) {
 
         return NextResponse.json({ releaseTime: data?.value || null })
     } catch (error: any) {
+        console.error('Graduation-time GET error:', error)
         return NextResponse.json({ error: error.message }, { status: 500 })
     }
 }
@@ -30,13 +32,16 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
     try {
         const cookieHeader = request.headers.get('cookie') || ''
-        const token = cookieHeader.split(';').find(c => c.trim().startsWith('auth_token='))?.split('=')[1]
+        const raw = cookieHeader.split(';').find(c => c.trim().startsWith('auth_token='))
+        const token = raw ? raw.trim().slice('auth_token='.length) : undefined
         if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         const payload = await verifyToken(token)
         if (!payload || payload.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
         const { releaseTime } = await request.json()
-        if (!releaseTime) return NextResponse.json({ error: 'releaseTime is required' }, { status: 400 })
+        if (!releaseTime || isNaN(new Date(releaseTime).getTime())) {
+            return NextResponse.json({ error: 'releaseTime must be a valid ISO date string' }, { status: 400 })
+        }
 
         const { error } = await supabaseAdmin
             .from('app_settings')
@@ -46,6 +51,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ success: true, releaseTime })
     } catch (error: any) {
+        console.error('Graduation-time POST error:', error)
         return NextResponse.json({ error: error.message }, { status: 500 })
     }
 }

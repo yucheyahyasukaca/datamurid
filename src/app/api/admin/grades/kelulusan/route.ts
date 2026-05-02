@@ -8,7 +8,8 @@ export const runtime = 'edge'
 export async function GET(request: Request) {
     try {
         const cookieHeader = request.headers.get('cookie') || ''
-        const token = cookieHeader.split(';').find(c => c.trim().startsWith('auth_token='))?.split('=')[1]
+        const raw = cookieHeader.split(';').find(c => c.trim().startsWith('auth_token='))
+        const token = raw ? raw.trim().slice('auth_token='.length) : undefined
         if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         const payload = await verifyToken(token)
         if (!payload || payload.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -40,20 +41,23 @@ export async function GET(request: Request) {
         const { data, error, count } = await query
         if (error) throw error
 
-        // Stats global (tanpa filter)
-        const { data: allRecords } = await supabaseAdmin
+        const { count: totalLulus } = await supabaseAdmin
             .from('graduation_records')
-            .select('status')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'LULUS')
 
-        const totalLulus = allRecords?.filter(r => r.status === 'LULUS').length || 0
-        const totalTidakLulus = allRecords?.filter(r => r.status === 'TIDAK LULUS').length || 0
+        const { count: totalTidakLulus } = await supabaseAdmin
+            .from('graduation_records')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'TIDAK LULUS')
 
         return NextResponse.json({
             data: data || [],
             total: count || 0,
-            stats: { lulus: totalLulus, tidak_lulus: totalTidakLulus }
+            stats: { lulus: totalLulus || 0, tidak_lulus: totalTidakLulus || 0 }
         })
     } catch (error: any) {
+        console.error('Kelulusan list GET error:', error)
         return NextResponse.json({ error: error.message }, { status: 500 })
     }
 }
