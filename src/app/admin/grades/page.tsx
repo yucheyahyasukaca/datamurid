@@ -33,6 +33,20 @@ export default function AdminGradesMenuPage() {
             gradient: 'from-purple-600 to-pink-600',
             bgGlow: 'bg-purple-500/10',
             hoverGlow: 'group-hover:bg-purple-500/20'
+        },
+        {
+            id: 'kelulusan',
+            title: 'Info Kelulusan',
+            subtitle: 'Pengumuman Kelulusan Siswa',
+            description: 'Upload data kelulusan dan atur waktu pengumuman',
+            icon: (
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                </svg>
+            ),
+            gradient: 'from-amber-500 to-orange-500',
+            bgGlow: 'bg-amber-500/10',
+            hoverGlow: 'group-hover:bg-amber-500/20'
         }
     ]
 
@@ -51,7 +65,7 @@ export default function AdminGradesMenuPage() {
             </div>
 
             {/* Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl">
                 {gradeTypes.map((type) => (
                     <button
                         key={type.id}
@@ -96,7 +110,7 @@ export default function AdminGradesMenuPage() {
             </div>
 
             {/* Stats Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl">
                 <div className="glass-panel p-6 rounded-xl border border-white/5">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
@@ -124,6 +138,22 @@ export default function AdminGradesMenuPage() {
                             <h4 className="text-white font-semibold mb-1">Info PDSS</h4>
                             <p className="text-slate-400 text-sm">
                                 Data Pangkalan Data Sekolah dan Siswa
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="glass-panel p-6 rounded-xl border border-white/5">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                            <svg className="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 className="text-white font-semibold mb-1">Info Kelulusan</h4>
+                            <p className="text-slate-400 text-sm">
+                                Upload data dan atur waktu pengumuman kelulusan siswa
                             </p>
                         </div>
                     </div>
